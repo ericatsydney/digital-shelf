@@ -1,0 +1,29 @@
+[
+  {
+    "id": "hangar",
+    "name": "Hangar",
+    "background": "#07111f",
+    "gridColor": "#284c6e",
+    "accentColor": "#55d6ff",
+    "ambientIntensity": 0.6,
+    "directionalIntensity": 1.2
+  },
+  {
+    "id": "space",
+    "name": "Space",
+    "background": "#02040c",
+    "gridColor": "#29336d",
+    "accentColor": "#8d9cff",
+    "ambientIntensity": 0.35,
+    "directionalIntensity": 0.85
+  },
+  {
+    "id": "ruined-city",
+    "name": "Ruined City",
+    "background": "#1b1515",
+    "gridColor": "#6c4037",
+    "accentColor": "#ff9b61",
+    "ambientIntensity": 0.7,
+    "directionalIntensity": 1
+  }
+]

@@ -1,5 +1,7 @@
 node_modules/
 dist/
+test-results/
+tsconfig.tsbuildinfo
 .superpowers/
+memory/
 .DS_Store
-

@@ -1,0 +1,150 @@
+:root {
+  color: #f4f7fb;
+  background: #070b14;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #070b14;
+}
+
+.app-shell--status {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  color: #9fb3c8;
+}
+
+.hero-display {
+  position: relative;
+  display: grid;
+  min-height: min(68vh, 720px);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--stage-background, #07111f);
+}
+
+.hero-display__grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.75;
+  background-image: linear-gradient(rgba(85, 214, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(85, 214, 255, 0.12) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+  z-index: -1;
+}
+
+.hero-display__content {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  width: min(100% - 2rem, 1100px);
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
+}
+
+.hero-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.hero-canvas__status {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  padding: 0.7rem 1rem;
+  border: 1px solid #35516c;
+  background: rgba(7, 17, 31, 0.85);
+  color: #b9cadb;
+}
+
+.hero-canvas--empty {
+  display: grid;
+  place-items: center;
+  color: #a9bbcd;
+}
+
+.capture-control {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 3;
+  display: grid;
+  justify-items: end;
+  gap: 0.4rem;
+}
+
+.capture-button {
+  border: 1px solid #55d6ff;
+  padding: 0.65rem 0.85rem;
+  background: rgba(7, 17, 31, 0.88);
+  color: #e8f7ff;
+  cursor: pointer;
+}
+
+.capture-button:disabled { cursor: wait; opacity: 0.65; }
+.capture-error { margin: 0; padding: 0.45rem 0.6rem; background: rgba(92, 35, 29, 0.92); color: #ffd0c8 !important; font-size: 0.78rem; }
+
+.hero-display h1 {
+  margin: 0.35rem 0;
+  font-size: clamp(2.5rem, 9vw, 7rem);
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+}
+
+.hero-display p { color: #a9bbcd; }
+.hero-display__unit { font-size: 1.1rem; color: #55d6ff !important; }
+.eyebrow { color: #55d6ff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; }
+
+.command-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 1px;
+  background: #243143;
+  border-top: 1px solid #35465a;
+}
+
+.command-sheet__roster,
+.command-sheet__controls { background: #0b111d; padding: 1.25rem; }
+.command-sheet__controls { display: grid; gap: 1.5rem; align-content: start; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.8rem; }
+.section-heading__count { color: #72849a; font-size: 0.8rem; }
+.unit-list, .slot-list, .stage-list { display: grid; gap: 0.55rem; }
+.unit-card, .slot-button, .stage-button { border: 1px solid #26364a; background: #101a29; padding: 0.8rem; text-align: left; cursor: pointer; }
+.unit-card:hover, .unit-card--selected, .slot-button[aria-pressed='true'], .stage-button[aria-pressed='true'] { border-color: #55d6ff; background: #13283a; }
+.unit-card__title, .unit-card__category { display: block; }
+.unit-card__category { margin-top: 0.25rem; color: #8ea2b8; font-size: 0.82rem; }
+.tag { display: inline-block; margin: 0.65rem 0.4rem 0 0; color: #55d6ff; font-size: 0.72rem; }
+.notice { color: #ffc76b; font-size: 0.82rem; }
+.slot-button, .stage-button { color: #c3d2e0; }
+.stage-button { display: flex; align-items: center; gap: 0.55rem; }
+.stage-swatch { width: 0.65rem; height: 0.65rem; border-radius: 50%; }
+
+@media (max-width: 700px) {
+  .hero-display { min-height: 62vh; }
+  .command-sheet { display: block; }
+  .command-sheet__controls { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .command-sheet__controls { grid-template-columns: 1fr; }
+}

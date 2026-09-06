@@ -1,0 +1,10 @@
+[
+  {
+    "id": "haro-green",
+    "title": "Haro Green",
+    "category": "Figure",
+    "description": "Green Haro display model.",
+    "tags": ["mascot", "gunpla"],
+    "model": "/models/haro-green.glb"
+  }
+]
