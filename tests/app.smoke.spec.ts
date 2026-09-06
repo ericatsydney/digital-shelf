@@ -13,7 +13,7 @@ test.describe('tactical showcase', () => {
     await expect(page.getByRole('button', { name: /Haro Green/ })).toBeVisible();
 
     await page.getByRole('button', { name: /Haro Green/ }).click();
-    await expect(page.getByText('Haro Green', { exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Haro Green', { exact: true })).toBeVisible();
     await expect(page.locator('.hero-canvas')).toBeVisible();
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await modelResponse;

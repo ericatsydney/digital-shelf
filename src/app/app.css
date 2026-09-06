@@ -140,7 +140,7 @@ button {
 .stage-swatch { width: 0.65rem; height: 0.65rem; border-radius: 50%; }
 
 @media (max-width: 700px) {
-  .hero-display { min-height: 62vh; }
+  .hero-display { min-height: 76vh; }
   .command-sheet { display: block; }
   .command-sheet__controls { grid-template-columns: 1fr 1fr; }
 }
