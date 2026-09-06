@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { loadCollection } from '../data/collection';
 import { loadStages } from '../data/stages';
 import type { CollectionRecord, StageRecord } from './types';
@@ -22,6 +22,12 @@ export function App() {
   const [stages, setStages] = useState<StageRecord[]>([fallbackStage]);
   const [collectionStatus, setCollectionStatus] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [skipped, setSkipped] = useState(0);
+  const handleUnitReady = useCallback((requestId: number) => {
+    dispatch({ type: 'unit-ready', requestId });
+  }, []);
+  const handleUnitError = useCallback((requestId: number) => {
+    dispatch({ type: 'unit-error', requestId });
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -73,8 +79,8 @@ export function App() {
           unit={selectedUnit}
           stage={selectedStage}
           requestId={state.loadRequestId}
-          onReady={(requestId) => dispatch({ type: 'unit-ready', requestId })}
-          onError={(requestId) => dispatch({ type: 'unit-error', requestId })}
+          onReady={handleUnitReady}
+          onError={handleUnitError}
         />
         <div className="hero-display__content">
           <span className="eyebrow">TACTICAL SHOWCASE</span>

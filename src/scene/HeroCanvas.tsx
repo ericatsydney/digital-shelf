@@ -1,10 +1,12 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Component, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRecord, StageRecord } from '../app/types';
 import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
 import { CaptureButton } from '../components/CaptureButton';
+
+const canvasDpr: [number, number] = [1, 2];
 
 type HeroCanvasProps = {
   unit: CollectionRecord | null;
@@ -78,19 +80,29 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
     }
   }, [isCurrent, onError, requestId]);
 
+  const cameraPosition = useMemo<[number, number, number]>(
+    () => unit?.camera?.position ?? [4, 2.5, 6],
+    [unit?.camera?.position],
+  );
+  const cameraTarget = useMemo<[number, number, number]>(
+    () => unit?.camera?.target ?? [0, 0, 0],
+    [unit?.camera?.target],
+  );
+  const camera = useMemo(() => ({ position: cameraPosition, fov: 42 }), [cameraPosition]);
+  const handleCanvasCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {
+    setCanvas(gl.domElement);
+  }, []);
+
   if (!unit) {
     return <div className="hero-canvas hero-canvas--empty" role="status">Select a unit from the roster</div>;
   }
 
-  const cameraPosition: [number, number, number] = unit.camera?.position ?? [4, 2.5, 6];
-  const cameraTarget: [number, number, number] = unit.camera?.target ?? [0, 0, 0];
-
   return (
     <div className="hero-canvas" style={{ backgroundColor: stage.background }} aria-label={`${unit.title} 3D model`}>
       <Canvas
-        camera={{ position: cameraPosition, fov: 42 }}
-        dpr={[1, 2]}
-        onCreated={({ gl }) => setCanvas(gl.domElement)}
+        camera={camera}
+        dpr={canvasDpr}
+        onCreated={handleCanvasCreated}
       >
         <StageScene stage={stage} />
         <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>

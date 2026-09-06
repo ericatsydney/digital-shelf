@@ -54,6 +54,23 @@ test.describe('tactical showcase', () => {
     await captureButton.click();
   });
 
+  test('changes stage without freezing the active 3D scene', async ({ page }) => {
+    const modelResponse = page.waitForResponse(
+      (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
+    );
+
+    await page.goto('/');
+    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await modelResponse;
+    await page.waitForTimeout(1_000);
+
+    const spaceStage = page.getByRole('button', { name: 'Space stage' });
+    await expect(spaceStage).toBeVisible();
+    await spaceStage.click({ timeout: 3_000 });
+    await expect(spaceStage).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.hero-canvas canvas')).toBeVisible();
+  });
+
   test('keeps the hero and command sheet usable at a narrow mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');

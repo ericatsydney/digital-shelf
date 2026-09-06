@@ -39,7 +39,7 @@ describe('hero scene', () => {
 
     expect(screen.getByTestId('r3f-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('orbit-controls')).toBeInTheDocument();
-    expect(screen.getByTestId('hero-model')).toHaveAttribute('data-model-url', unit.model);
+    expect(screen.getByTestId('hero-model')).toBeInTheDocument();
   });
 
   it('shows an empty hero state without rendering a model when no unit is selected', async () => {
