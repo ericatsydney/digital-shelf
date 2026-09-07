@@ -6,7 +6,12 @@
     "gridColor": "#284c6e",
     "accentColor": "#55d6ff",
     "ambientIntensity": 0.6,
-    "directionalIntensity": 1.2
+    "directionalIntensity": 1.2,
+    "backdrop": {
+      "variant": "hangar",
+      "particleCount": 0,
+      "motion": 0.2
+    }
   },
   {
     "id": "space",
@@ -15,7 +20,12 @@
     "gridColor": "#29336d",
     "accentColor": "#8d9cff",
     "ambientIntensity": 0.35,
-    "directionalIntensity": 0.85
+    "directionalIntensity": 0.85,
+    "backdrop": {
+      "variant": "space",
+      "particleCount": 72,
+      "motion": 0.35
+    }
   },
   {
     "id": "ruined-city",
@@ -24,6 +34,11 @@
     "gridColor": "#6c4037",
     "accentColor": "#ff9b61",
     "ambientIntensity": 0.7,
-    "directionalIntensity": 1
+    "directionalIntensity": 1,
+    "backdrop": {
+      "variant": "ruined-city",
+      "particleCount": 12,
+      "motion": 0.12
+    }
   }
 ]

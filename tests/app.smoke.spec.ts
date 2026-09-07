@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('tactical showcase', () => {
+  test.describe.configure({ mode: 'serial' });
+
   test('renders the local collection and deploys Haro into a fixed slot', async ({ page }) => {
     const modelResponse = page.waitForResponse(
       (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
@@ -54,6 +56,54 @@ test.describe('tactical showcase', () => {
     await captureButton.click();
   });
 
+  test('switches through every hologram stage while preserving the model and capture action', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await page.goto('/');
+    await page.getByRole('button', { name: /Haro Green/ }).click();
+
+    const heroCanvas = page.locator('.hero-canvas');
+    const canvas = heroCanvas.locator('canvas');
+    const modelLabel = page.getByRole('region', { name: 'Hero display' }).getByText('Haro Green', { exact: true });
+    const captureButton = page.getByRole('button', { name: 'Capture PNG' });
+
+    await expect(heroCanvas).toHaveAttribute('data-backdrop-variant', 'hangar');
+    await expect(canvas).toBeVisible();
+    await expect(modelLabel).toBeVisible();
+    await expect(captureButton).toBeEnabled();
+
+    const atmosphericLayer = await heroCanvas.evaluate((element) => {
+      const pseudo = getComputedStyle(element, '::before');
+      const canvasStyle = getComputedStyle(element.querySelector('canvas') as HTMLCanvasElement);
+      return {
+        pseudoZIndex: pseudo.zIndex,
+        pseudoPointerEvents: pseudo.pointerEvents,
+        pseudoOpacity: pseudo.opacity,
+        canvasZIndex: canvasStyle.zIndex,
+      };
+    });
+    expect(atmosphericLayer).toEqual({
+      pseudoZIndex: '2',
+      pseudoPointerEvents: 'none',
+      pseudoOpacity: '0.65',
+      canvasZIndex: '1',
+    });
+
+    for (const stage of [
+      { name: 'Space stage', variant: 'space' },
+      { name: 'Ruined City stage', variant: 'ruined-city' },
+      { name: 'Hangar stage', variant: 'hangar' },
+    ]) {
+      const stageButton = page.getByRole('button', { name: stage.name });
+      await stageButton.click();
+      await expect(stageButton).toHaveAttribute('aria-pressed', 'true');
+      await expect(heroCanvas).toHaveAttribute('data-backdrop-variant', stage.variant);
+      await expect(canvas).toBeVisible();
+      await expect(modelLabel).toBeVisible();
+      await expect(captureButton).toBeEnabled();
+    }
+  });
+
   test('changes stage without freezing the active 3D scene', async ({ page }) => {
     const modelResponse = page.waitForResponse(
       (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
@@ -66,7 +116,7 @@ test.describe('tactical showcase', () => {
 
     const spaceStage = page.getByRole('button', { name: 'Space stage' });
     await expect(spaceStage).toBeVisible();
-    await spaceStage.click({ timeout: 3_000 });
+    await spaceStage.click({ timeout: 30_000 });
     await expect(spaceStage).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
   });

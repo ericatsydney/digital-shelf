@@ -16,6 +16,12 @@ export type CollectionRecord = {
   };
 };
 
+export type StageBackdropConfig = {
+  variant: 'hangar' | 'space' | 'ruined-city';
+  particleCount: number;
+  motion: number;
+};
+
 export type StageRecord = {
   id: string;
   name: string;
@@ -24,4 +30,5 @@ export type StageRecord = {
   accentColor: string;
   ambientIntensity: number;
   directionalIntensity: number;
+  backdrop: StageBackdropConfig;
 };

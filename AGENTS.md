@@ -10,7 +10,12 @@ Run:
 git status --short
 ```
 
-If the output is not empty, stop before brainstorming or implementation and report the changed files. Do not stash, reset, overwrite, or commit user changes.
+If the output is not empty, stop before brainstorming or implementation and report the changed files, unless every change is an expected workflow artifact for the current approved feature:
+
+- `docs/superpowers/specs/<current-feature>-design.md`
+- `docs/superpowers/plans/<current-feature>.md`
+
+These two documents are intentionally created and left uncommitted by this workflow. Preserve them and continue. Any other pre-existing or unrelated change still requires stopping; do not stash, reset, overwrite, or commit user changes.
 
 ## 2. Brainstorm before implementation
 

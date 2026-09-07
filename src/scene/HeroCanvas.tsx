@@ -4,6 +4,7 @@ import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState,
 import type { CollectionRecord, StageRecord } from '../app/types';
 import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
+import { StageBackdrop } from './StageBackdrop';
 import { CaptureButton } from '../components/CaptureButton';
 
 const canvasDpr: [number, number] = [1, 2];
@@ -98,12 +99,18 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
   }
 
   return (
-    <div className="hero-canvas" style={{ backgroundColor: stage.background }} aria-label={`${unit.title} 3D model`}>
+    <div
+      className="hero-canvas"
+      style={{ backgroundColor: stage.background }}
+      data-backdrop-variant={stage.backdrop.variant}
+      aria-label={`${unit.title} 3D model`}
+    >
       <Canvas
         camera={camera}
         dpr={canvasDpr}
         onCreated={handleCanvasCreated}
       >
+        <StageBackdrop stage={stage} config={stage.backdrop} />
         <StageScene stage={stage} />
         <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>
           <Suspense fallback={null}>

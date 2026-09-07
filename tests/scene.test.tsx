@@ -29,6 +29,11 @@ const stage: StageRecord = {
   accentColor: '#55d6ff',
   ambientIntensity: 0.6,
   directionalIntensity: 1.2,
+  backdrop: {
+    variant: 'hangar',
+    particleCount: 0,
+    motion: 0.2,
+  },
 };
 
 describe('hero scene', () => {

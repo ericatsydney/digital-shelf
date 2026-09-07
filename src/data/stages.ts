@@ -1,4 +1,4 @@
-import type { StageRecord } from '../app/types';
+import type { StageBackdropConfig, StageRecord } from '../app/types';
 
 export class StageLoadError extends Error {
   readonly code = 'stage-error' as const;
@@ -14,6 +14,35 @@ const isNonEmptyString = (value: unknown): value is string =>
 
 const isColor = (value: unknown): value is string =>
   typeof value === 'string' && /^#[\da-f]{3}(?:[\da-f]{3})?$/i.test(value);
+
+const isBackdropVariant = (value: unknown): value is StageBackdropConfig['variant'] =>
+  value === 'hangar' || value === 'space' || value === 'ruined-city';
+
+const isNonNegativeFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0;
+
+const defaultBackdrop: StageBackdropConfig = {
+  variant: 'hangar',
+  particleCount: 0,
+  motion: 0,
+};
+
+const validateBackdropConfig = (value: unknown): StageBackdropConfig | null => {
+  if (!value || typeof value !== 'object') return null;
+  const backdrop = value as Record<string, unknown>;
+  if (
+    !isBackdropVariant(backdrop.variant) ||
+    !isNonNegativeFiniteNumber(backdrop.particleCount) ||
+    !isNonNegativeFiniteNumber(backdrop.motion)
+  ) {
+    return null;
+  }
+  return {
+    variant: backdrop.variant,
+    particleCount: backdrop.particleCount,
+    motion: backdrop.motion,
+  };
+};
 
 export function validateStageRecord(value: unknown): StageRecord | null {
   if (!value || typeof value !== 'object') return null;
@@ -31,7 +60,12 @@ export function validateStageRecord(value: unknown): StageRecord | null {
   ) {
     return null;
   }
-  return record as unknown as StageRecord;
+  if (record.backdrop === undefined) {
+    return { ...record, backdrop: defaultBackdrop } as unknown as StageRecord;
+  }
+
+  const backdrop = validateBackdropConfig(record.backdrop);
+  return backdrop ? ({ ...record, backdrop } as unknown as StageRecord) : null;
 }
 
 export async function loadStages(url: string): Promise<StageRecord[]> {
