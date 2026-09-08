@@ -5,6 +5,7 @@
     "category": "Figure",
     "description": "Green Haro display model.",
     "tags": ["mascot", "gunpla"],
-    "model": "/models/haro-green.glb"
+    "model": "/models/haro-green.glb",
+    "heightMeters": 18
   }
 ]

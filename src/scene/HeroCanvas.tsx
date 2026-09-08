@@ -17,6 +17,31 @@ type HeroCanvasProps = {
   onError?: (requestId: number) => void;
 };
 
+type CameraVector = [number, number, number];
+
+type HeroCameraDefaults = {
+  position: CameraVector;
+  target: CameraVector;
+};
+
+const defaultCamera: HeroCameraDefaults = {
+  position: [4, 2.5, 6],
+  target: [0, 0, 0],
+};
+
+const ruinedCityCamera: HeroCameraDefaults = {
+  position: [42, 28, 54],
+  target: [0, 8, 0],
+};
+
+export function getHeroCameraDefaults(
+  stage: Pick<StageRecord, 'backdrop'>,
+  camera?: CollectionRecord['camera'],
+): HeroCameraDefaults {
+  if (camera) return camera;
+  return stage.backdrop.variant === 'ruined-city' ? ruinedCityCamera : defaultCamera;
+}
+
 class ErrorBoundary<P extends { children: ReactNode } = { children: ReactNode }> extends Component<
   P,
   { hasError: boolean }
@@ -81,13 +106,9 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
     }
   }, [isCurrent, onError, requestId]);
 
-  const cameraPosition = useMemo<[number, number, number]>(
-    () => unit?.camera?.position ?? [4, 2.5, 6],
-    [unit?.camera?.position],
-  );
-  const cameraTarget = useMemo<[number, number, number]>(
-    () => unit?.camera?.target ?? [0, 0, 0],
-    [unit?.camera?.target],
+  const { position: cameraPosition, target: cameraTarget } = useMemo(
+    () => getHeroCameraDefaults(stage, unit?.camera),
+    [stage.backdrop.variant, unit?.camera],
   );
   const camera = useMemo(() => ({ position: cameraPosition, fov: 42 }), [cameraPosition]);
   const handleCanvasCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {

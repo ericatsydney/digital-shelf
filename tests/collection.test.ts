@@ -38,6 +38,37 @@ describe('collection validation and loading', () => {
     expect(validateCollectionRecord(validCollectionRecord)).toEqual(validCollectionRecord);
   });
 
+  it('accepts a positive finite heightMeters value', () => {
+    expect(
+      validateCollectionRecord({
+        id: 'haro-green',
+        title: 'Haro Green',
+        category: 'Figure',
+        model: '/models/haro-green.glb',
+        heightMeters: 18,
+      }),
+    ).toMatchObject({ heightMeters: 18 });
+  });
+
+  it('accepts records without heightMeters for backward compatibility', () => {
+    expect(validateCollectionRecord(validCollectionRecord)).not.toBeNull();
+  });
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid heightMeters: %s',
+    (heightMeters) => {
+      expect(
+        validateCollectionRecord({
+          id: 'invalid',
+          title: 'Invalid',
+          category: 'Figure',
+          model: '/models/invalid.glb',
+          heightMeters,
+        }),
+      ).toBeNull();
+    },
+  );
+
   it('skips records missing required fields and reports the skipped count', async () => {
     vi.stubGlobal(
       'fetch',

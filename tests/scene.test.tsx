@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
+import { getHeightAwareScale } from '../src/scene/HeroModel';
+import { getHeroCameraDefaults } from '../src/scene/HeroCanvas';
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="r3f-canvas">{children}</div>,
@@ -36,7 +38,64 @@ const stage: StageRecord = {
   },
 };
 
+const ruinedCityStage: StageRecord = {
+  ...stage,
+  id: 'ruined-city',
+  name: 'Ruined City',
+  backdrop: {
+    ...stage.backdrop,
+    variant: 'ruined-city',
+  },
+};
+
+const spaceStage: StageRecord = {
+  ...stage,
+  id: 'space',
+  name: 'Space',
+  backdrop: {
+    ...stage.backdrop,
+    variant: 'space',
+  },
+};
+
 describe('hero scene', () => {
+  describe('getHeroCameraDefaults', () => {
+    it('uses a wider city framing aimed above the road when no camera is specified', () => {
+      expect(getHeroCameraDefaults(ruinedCityStage)).toEqual({
+        position: [42, 28, 54],
+        target: [0, 8, 0],
+      });
+    });
+
+    it('preserves explicit record framing for the city stage', () => {
+      const camera = {
+        position: [1, 2, 3] as [number, number, number],
+        target: [4, 5, 6] as [number, number, number],
+      };
+
+      expect(getHeroCameraDefaults(ruinedCityStage, camera)).toEqual(camera);
+    });
+
+    it('keeps the existing defaults for non-city stages', () => {
+      const expected = { position: [4, 2.5, 6], target: [0, 0, 0] };
+
+      expect(getHeroCameraDefaults(stage)).toEqual(expected);
+      expect(getHeroCameraDefaults(spaceStage)).toEqual(expected);
+    });
+  });
+
+  describe('getHeightAwareScale', () => {
+    it('scales a measured model to its declared height while preserving authored scale', () => {
+      expect(getHeightAwareScale(2, 18, 1)).toBe(9);
+      expect(getHeightAwareScale(2, 18, 1.25)).toBe(11.25);
+    });
+
+    it('falls back to authored scale when height metadata or measured bounds are unavailable', () => {
+      expect(getHeightAwareScale(2, undefined, 1.25)).toBe(1.25);
+      expect(getHeightAwareScale(0, 18, 1.25)).toBe(1.25);
+    });
+  });
+
   it('renders one canvas with orbit controls and the selected model URL', async () => {
     const { HeroCanvas } = await import('../src/scene/HeroCanvas');
 

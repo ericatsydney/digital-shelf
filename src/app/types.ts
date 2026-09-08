@@ -5,6 +5,7 @@ export type CollectionRecord = {
   description?: string;
   tags?: string[];
   model: string;
+  heightMeters?: number;
   thumbnail?: string;
   camera?: {
     position: [number, number, number];

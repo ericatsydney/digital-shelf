@@ -15,6 +15,9 @@ const isNonEmptyString = (value: unknown): value is string =>
 const isVector3 = (value: unknown): value is [number, number, number] =>
   Array.isArray(value) && value.length === 3 && value.every((item) => typeof item === 'number' && Number.isFinite(item));
 
+const isPositiveFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0;
+
 export function validateCollectionRecord(value: unknown): CollectionRecord | null {
   if (!value || typeof value !== 'object') return null;
 
@@ -31,6 +34,7 @@ export function validateCollectionRecord(value: unknown): CollectionRecord | nul
   if (record.description !== undefined && !isNonEmptyString(record.description)) return null;
   if (record.tags !== undefined && (!Array.isArray(record.tags) || !record.tags.every(isNonEmptyString))) return null;
   if (record.thumbnail !== undefined && !isNonEmptyString(record.thumbnail)) return null;
+  if (record.heightMeters !== undefined && !isPositiveFiniteNumber(record.heightMeters)) return null;
 
   if (record.camera !== undefined) {
     if (!record.camera || typeof record.camera !== 'object') return null;
