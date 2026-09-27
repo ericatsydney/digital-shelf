@@ -6,6 +6,7 @@ import type { CollectionRecord } from '../app/types';
 type HeroModelProps = {
   record: CollectionRecord;
   onLoaded: () => void;
+  onBounds?: (bounds: Box3) => void;
 };
 
 export function getHeightAwareScale(
@@ -26,7 +27,7 @@ export function getHeightAwareScale(
   return (heightMeters / measuredHeight) * authoredScale;
 }
 
-export function HeroModel({ record, onLoaded }: HeroModelProps) {
+export function HeroModel({ record, onLoaded, onBounds }: HeroModelProps) {
   const { scene } = useGLTF(record.model);
   const authoredScale = record.display?.scale ?? 1;
   const measuredHeight = useMemo(() => {
@@ -38,10 +39,21 @@ export function HeroModel({ record, onLoaded }: HeroModelProps) {
     }
   }, [scene]);
   const scale = getHeightAwareScale(measuredHeight, record.heightMeters, authoredScale);
+  const effectiveBounds = useMemo(() => {
+    try {
+      const bounds = new Box3().setFromObject(scene);
+      bounds.min.multiplyScalar(scale);
+      bounds.max.multiplyScalar(scale);
+      return bounds;
+    } catch {
+      return new Box3();
+    }
+  }, [scale, scene]);
 
   useEffect(() => {
+    onBounds?.(effectiveBounds);
     onLoaded();
-  }, [onLoaded]);
+  }, [effectiveBounds, onBounds, onLoaded]);
 
   return (
     <group data-testid="hero-model" scale={scale}>

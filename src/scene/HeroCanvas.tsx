@@ -1,6 +1,9 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Box3, Sphere, Vector3 } from 'three';
+import { useThree } from '@react-three/fiber';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { CollectionRecord, StageRecord } from '../app/types';
 import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
@@ -33,6 +36,37 @@ const ruinedCityCamera: HeroCameraDefaults = {
   position: [42, 28, 54],
   target: [0, 8, 0],
 };
+
+export function getCameraFit(
+  bounds: Box3,
+  fallback: HeroCameraDefaults,
+  fov: number,
+  aspect = 1,
+): HeroCameraDefaults {
+  if (bounds.isEmpty() || !Number.isFinite(fov) || fov <= 0) return fallback;
+
+  const center = new Vector3();
+  const sphere = new Sphere();
+  bounds.getCenter(center);
+  bounds.getBoundingSphere(sphere);
+  if (!Number.isFinite(sphere.radius) || sphere.radius <= 0) return fallback;
+
+  const fallbackDirection = new Vector3(...fallback.position).sub(new Vector3(...fallback.target));
+  if (fallbackDirection.lengthSq() === 0) fallbackDirection.set(0, 0, 1);
+  fallbackDirection.normalize();
+
+  const halfVerticalFov = (fov * Math.PI) / 360;
+  const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
+  const halfHorizontalFov = Math.atan(Math.tan(halfVerticalFov) * safeAspect);
+  const halfFov = Math.min(halfVerticalFov, halfHorizontalFov);
+  const distance = (sphere.radius / Math.sin(halfFov)) * 1.25;
+  const position = center.clone().add(fallbackDirection.multiplyScalar(distance));
+
+  return {
+    position: [position.x, position.y, position.z],
+    target: [center.x, center.y, center.z],
+  };
+}
 
 export function getHeroCameraDefaults(
   stage: Pick<StageRecord, 'backdrop'>,
@@ -82,15 +116,44 @@ function LoadingFallback() {
   return <div className="hero-canvas__status" role="status">Loading unit…</div>;
 }
 
+function HeroCameraFit({ bounds, fallback, fov, controlsRef }: {
+  bounds: Box3 | null;
+  fallback: HeroCameraDefaults;
+  fov: number;
+  controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+}) {
+  const camera = useThree(({ camera }) => camera);
+
+  useEffect(() => {
+    if (!bounds) return;
+
+    const aspect = 'aspect' in camera && typeof camera.aspect === 'number' ? camera.aspect : 1;
+    const fit = getCameraFit(bounds, fallback, fov, aspect);
+    camera.position.set(...fit.position);
+    camera.lookAt(...fit.target);
+    camera.updateProjectionMatrix();
+
+    if (controlsRef.current) {
+      controlsRef.current.target.set(...fit.target);
+      controlsRef.current.update();
+    }
+  }, [bounds, camera, controlsRef, fallback, fov]);
+
+  return null;
+}
+
 export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCanvasProps) {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [modelBounds, setModelBounds] = useState<Box3 | null>(null);
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const currentRequestId = useRef(requestId);
   currentRequestId.current = requestId;
   useEffect(() => {
     setLoaded(false);
     setLoadError(false);
+    setModelBounds(null);
   }, [requestId, unit?.id]);
   const isCurrent = useCallback(() => currentRequestId.current === requestId, [requestId]);
   const handleReady = useCallback(() => {
@@ -105,6 +168,9 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
       onError?.(requestId);
     }
   }, [isCurrent, onError, requestId]);
+  const handleBounds = useCallback((bounds: Box3) => {
+    setModelBounds(bounds.clone());
+  }, []);
 
   const { position: cameraPosition, target: cameraTarget } = useMemo(
     () => getHeroCameraDefaults(stage, unit?.camera),
@@ -135,10 +201,16 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
         <StageScene stage={stage} />
         <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>
           <Suspense fallback={null}>
-            <HeroModel record={unit} onLoaded={handleReady} />
+            <HeroModel record={unit} onLoaded={handleReady} onBounds={handleBounds} />
           </Suspense>
         </HeroLoadBoundary>
-        <OrbitControls target={cameraTarget} enablePan enableZoom enableRotate />
+        <HeroCameraFit
+          bounds={modelBounds}
+          fallback={{ position: cameraPosition, target: cameraTarget }}
+          fov={camera.fov}
+          controlsRef={controlsRef}
+        />
+        <OrbitControls ref={controlsRef} target={cameraTarget} enablePan enableZoom enableRotate />
       </Canvas>
       {!loaded && !loadError && <LoadingFallback />}
       {loadError && <div className="hero-canvas__status" role="alert">Model unavailable</div>}

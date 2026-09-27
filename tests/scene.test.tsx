@@ -1,12 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { Box3, Vector3 } from 'three';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
 import { getHeightAwareScale } from '../src/scene/HeroModel';
-import { getHeroCameraDefaults } from '../src/scene/HeroCanvas';
+import { getCameraFit, getHeroCameraDefaults } from '../src/scene/HeroCanvas';
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="r3f-canvas">{children}</div>,
-  useThree: () => ({ gl: { domElement: document.createElement('canvas') } }),
+  useThree: (selector: (state: unknown) => unknown) => selector({
+    gl: { domElement: document.createElement('canvas') },
+    camera: {
+      position: { set: vi.fn() },
+      lookAt: vi.fn(),
+      updateProjectionMatrix: vi.fn(),
+    },
+  }),
 }));
 
 vi.mock('@react-three/drei', () => ({
@@ -59,6 +67,34 @@ const spaceStage: StageRecord = {
 };
 
 describe('hero scene', () => {
+  describe('getCameraFit', () => {
+    it('returns a target at the bounds center and a distance that contains the model', () => {
+      const fit = getCameraFit(
+        new Box3(new Vector3(-1, -2, -1), new Vector3(1, 2, 1)),
+        { position: [4, 2.5, 6], target: [0, 0, 0] },
+        42,
+      );
+
+      expect(fit.target).toEqual([0, 0, 0]);
+      expect(fit.position[1]).toBeGreaterThan(0);
+      expect(fit.position[2]).toBeGreaterThan(6);
+    });
+
+    it('uses the narrower horizontal field of view for narrow canvases', () => {
+      const wideBounds = new Box3(new Vector3(-4, -1, -1), new Vector3(4, 1, 1));
+      const normalFit = getCameraFit(wideBounds, { position: [4, 2.5, 6], target: [0, 0, 0] }, 42, 1);
+      const narrowFit = getCameraFit(wideBounds, { position: [4, 2.5, 6], target: [0, 0, 0] }, 42, 0.5);
+
+      expect(narrowFit.position[2]).toBeGreaterThan(normalFit.position[2]);
+    });
+
+    it('falls back to the provided camera when bounds are invalid', () => {
+      const fallback = { position: [4, 2.5, 6] as [number, number, number], target: [0, 0, 0] as [number, number, number] };
+
+      expect(getCameraFit(new Box3(), fallback, 42)).toEqual(fallback);
+    });
+  });
+
   describe('getHeroCameraDefaults', () => {
     it('uses a wider city framing aimed above the road when no camera is specified', () => {
       expect(getHeroCameraDefaults(ruinedCityStage)).toEqual({
