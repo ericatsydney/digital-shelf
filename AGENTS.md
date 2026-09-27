@@ -60,6 +60,14 @@ npm run build
 npx playwright test
 ```
 
+Use the Playwright MCP for a user-perspective verification against the local app:
+
+- Open the local verification URL in the browser.
+- Exercise the requested user flow through the visible UI.
+- Confirm the expected rendered result and check for browser console errors.
+
+For the Digital Shelf 3D model flow, click the Haro Green button and confirm that the visible 3D canvas renders the model successfully.
+
 Do not proceed to code review if any command fails.
 
 ## 6. Code review
