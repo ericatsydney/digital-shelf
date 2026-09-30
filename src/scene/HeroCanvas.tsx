@@ -59,7 +59,7 @@ export function getCameraFit(
   const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
   const halfHorizontalFov = Math.atan(Math.tan(halfVerticalFov) * safeAspect);
   const halfFov = Math.min(halfVerticalFov, halfHorizontalFov);
-  const distance = (sphere.radius / Math.sin(halfFov)) * 1.25;
+  const distance = (sphere.radius / Math.sin(halfFov)) * 1.35;
   const position = center.clone().add(fallbackDirection.multiplyScalar(distance));
 
   return {

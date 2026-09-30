@@ -77,7 +77,7 @@ describe('hero scene', () => {
 
       expect(fit.target).toEqual([0, 0, 0]);
       expect(fit.position[1]).toBeGreaterThan(0);
-      expect(fit.position[2]).toBeGreaterThan(6);
+      expect(fit.position[2]).toBeGreaterThan(7);
     });
 
     it('uses the narrower horizontal field of view for narrow canvases', () => {
