@@ -81,15 +81,17 @@ git status --short
 
 Critical and Important findings block completion. Fix them, rerun affected tests, and review again. Minor findings should be reported.
 
-## 7. Local verification server
+## 7. Playwright visual verification capture
 
-Start Vite with:
+Start Vite as the target for Playwright, then ask the Playwright MCP to:
 
-```powershell
-npm run dev -- --host 127.0.0.1 --port 4173
-```
+- Open the local verification URL.
+- Exercise the requested user flow through the visible UI.
+- Capture the final rendered screen, including the Haro Green 3D model state when applicable.
+- Check for browser console errors.
+- Return the screen capture and verification result in the Codex chat so it can be reviewed here or remotely on mobile.
 
-Use port 4173 when available. If it is occupied, allow Vite to select the next available port and report the exact URL. Do not terminate another process occupying the preferred port.
+Use port 4173 when available. If it is occupied, allow Vite to select the next available port and report the exact URL. Do not terminate another process occupying the preferred port. Do not require the user to open the local server manually.
 
 ## Completion rules
 
