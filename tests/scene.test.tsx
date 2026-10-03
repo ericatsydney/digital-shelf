@@ -96,11 +96,17 @@ describe('hero scene', () => {
   });
 
   describe('getHeroCameraDefaults', () => {
-    it('uses a wider city framing aimed above the road when no camera is specified', () => {
-      expect(getHeroCameraDefaults(ruinedCityStage)).toEqual({
-        position: [42, 28, 54],
-        target: [0, 8, 0],
+    it('uses a street-facing city framing aligned with the roadway', () => {
+      const camera = getHeroCameraDefaults(ruinedCityStage);
+      const direction = new Vector3(...camera.target).sub(new Vector3(...camera.position)).normalize();
+
+      expect(camera).toEqual({
+        position: [10, 12, 34],
+        target: [0, 5, 0],
       });
+      expect(Math.abs(direction.z)).toBeGreaterThan(Math.abs(direction.x) * 2);
+      expect(direction.y).toBeLessThan(0);
+      expect(camera.position[1]).toBeGreaterThan(camera.target[1]);
     });
 
     it('preserves explicit record framing for the city stage', () => {
@@ -135,7 +141,7 @@ describe('hero scene', () => {
   it('renders one canvas with orbit controls and the selected model URL', async () => {
     const { HeroCanvas } = await import('../src/scene/HeroCanvas');
 
-    render(<HeroCanvas unit={unit} stage={stage} requestId={1} />);
+    render(<HeroCanvas unit={unit} stage={stage} requestId={1} cameraResetId={0} />);
 
     expect(screen.getByTestId('r3f-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('orbit-controls')).toBeInTheDocument();
@@ -145,7 +151,7 @@ describe('hero scene', () => {
   it('shows an empty hero state without rendering a model when no unit is selected', async () => {
     const { HeroCanvas } = await import('../src/scene/HeroCanvas');
 
-    render(<HeroCanvas unit={null} stage={stage} requestId={0} />);
+    render(<HeroCanvas unit={null} stage={stage} requestId={0} cameraResetId={0} />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Select a unit from the roster');
     expect(screen.queryByTestId('hero-model')).not.toBeInTheDocument();

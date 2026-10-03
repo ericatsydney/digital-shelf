@@ -14,6 +14,7 @@ describe('tactical state reducer', () => {
       unitStatus: 'idle',
       captureStatus: 'idle',
       loadRequestId: 0,
+      cameraResetId: 0,
     });
   });
 
@@ -44,6 +45,21 @@ describe('tactical state reducer', () => {
     expect(
       tacticalReducer(initialTacticalState, { type: 'select-stage', stageId: 'space' }),
     ).toMatchObject({ stageId: 'space' });
+  });
+
+  it('increments the camera reset revision for every stage selection', () => {
+    const first = tacticalReducer(initialTacticalState, {
+      type: 'select-stage',
+      stageId: 'ruined-city',
+    });
+    const second = tacticalReducer(first, {
+      type: 'select-stage',
+      stageId: 'ruined-city',
+    });
+
+    expect(first.stageId).toBe('ruined-city');
+    expect(first.cameraResetId).toBe(initialTacticalState.cameraResetId + 1);
+    expect(second.cameraResetId).toBe(first.cameraResetId + 1);
   });
 
   it('accepts ready only for the current unit load request', () => {

@@ -84,6 +84,7 @@ export function App() {
           unit={selectedUnit}
           stage={selectedStage}
           requestId={state.loadRequestId}
+          cameraResetId={state.cameraResetId}
           onReady={handleUnitReady}
           onError={handleUnitError}
         />

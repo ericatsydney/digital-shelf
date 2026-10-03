@@ -16,6 +16,7 @@ type HeroCanvasProps = {
   unit: CollectionRecord | null;
   stage: StageRecord;
   requestId: number;
+  cameraResetId: number;
   onReady?: (requestId: number) => void;
   onError?: (requestId: number) => void;
 };
@@ -33,8 +34,8 @@ const defaultCamera: HeroCameraDefaults = {
 };
 
 const ruinedCityCamera: HeroCameraDefaults = {
-  position: [42, 28, 54],
-  target: [0, 8, 0],
+  position: [10, 12, 34],
+  target: [0, 5, 0],
 };
 
 export function getCameraFit(
@@ -116,10 +117,11 @@ function LoadingFallback() {
   return <div className="hero-canvas__status" role="status">Loading unit…</div>;
 }
 
-function HeroCameraFit({ bounds, fallback, fov, controlsRef }: {
+function HeroCameraFit({ bounds, fallback, fov, cameraResetId, controlsRef }: {
   bounds: Box3 | null;
   fallback: HeroCameraDefaults;
   fov: number;
+  cameraResetId: number;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
 }) {
   const camera = useThree(({ camera }) => camera);
@@ -137,12 +139,12 @@ function HeroCameraFit({ bounds, fallback, fov, controlsRef }: {
       controlsRef.current.target.set(...fit.target);
       controlsRef.current.update();
     }
-  }, [bounds, camera, controlsRef, fallback, fov]);
+  }, [bounds, camera, cameraResetId, controlsRef, fallback, fov]);
 
   return null;
 }
 
-export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCanvasProps) {
+export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onError }: HeroCanvasProps) {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -208,6 +210,7 @@ export function HeroCanvas({ unit, stage, requestId, onReady, onError }: HeroCan
           bounds={modelBounds}
           fallback={{ position: cameraPosition, target: cameraTarget }}
           fov={camera.fov}
+          cameraResetId={cameraResetId}
           controlsRef={controlsRef}
         />
         <OrbitControls ref={controlsRef} target={cameraTarget} enablePan enableZoom enableRotate />

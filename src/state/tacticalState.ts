@@ -5,6 +5,7 @@ export type TacticalState = {
   unitStatus: 'idle' | 'loading' | 'ready' | 'error';
   captureStatus: 'idle' | 'capturing' | 'error';
   loadRequestId: number;
+  cameraResetId: number;
 };
 
 export type TacticalAction =
@@ -24,6 +25,7 @@ export const initialTacticalState: TacticalState = {
   unitStatus: 'idle',
   captureStatus: 'idle',
   loadRequestId: 0,
+  cameraResetId: 0,
 };
 
 export function tacticalReducer(state: TacticalState, action: TacticalAction): TacticalState {
@@ -39,7 +41,11 @@ export function tacticalReducer(state: TacticalState, action: TacticalAction): T
     case 'select-slot':
       return { ...state, selectedSlotId: action.slotId };
     case 'select-stage':
-      return { ...state, stageId: action.stageId };
+      return {
+        ...state,
+        stageId: action.stageId,
+        cameraResetId: state.cameraResetId + 1,
+      };
     case 'unit-ready':
       return action.requestId === state.loadRequestId ? { ...state, unitStatus: 'ready' } : state;
     case 'unit-error':
