@@ -18,7 +18,7 @@ export type CollectionRecord = {
 };
 
 export type StageBackdropConfig = {
-  variant: 'hangar' | 'space' | 'ruined-city';
+  variant: 'hangar' | 'forest' | 'space' | 'ruined-city';
   particleCount: number;
   motion: number;
 };

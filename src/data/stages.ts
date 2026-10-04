@@ -16,7 +16,7 @@ const isColor = (value: unknown): value is string =>
   typeof value === 'string' && /^#[\da-f]{3}(?:[\da-f]{3})?$/i.test(value);
 
 const isBackdropVariant = (value: unknown): value is StageBackdropConfig['variant'] =>
-  value === 'hangar' || value === 'space' || value === 'ruined-city';
+  value === 'hangar' || value === 'forest' || value === 'space' || value === 'ruined-city';
 
 const isNonNegativeFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0;

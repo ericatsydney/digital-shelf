@@ -1,14 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
-import { Box3, Vector3 } from 'three';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Box3, Scene, Vector3 } from 'three';
+import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
 import { getHeightAwareScale } from '../src/scene/HeroModel';
 import { getCameraFit, getHeroCameraDefaults } from '../src/scene/HeroCanvas';
 
+const { sceneState } = vi.hoisted(() => ({ sceneState: { scene: null as Scene | null } }));
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="r3f-canvas">{children}</div>,
   useThree: (selector: (state: unknown) => unknown) => selector({
     gl: { domElement: document.createElement('canvas') },
+    scene: sceneState.scene,
     camera: {
       position: { set: vi.fn() },
       lookAt: vi.fn(),
@@ -65,8 +68,10 @@ const spaceStage: StageRecord = {
     variant: 'space',
   },
 };
+const forestStage: StageRecord = { ...stage, id: 'forest', name: 'Forest', backdrop: { ...stage.backdrop, variant: 'forest' } };
 
 describe('hero scene', () => {
+  beforeEach(() => { sceneState.scene = new Scene(); });
   describe('getCameraFit', () => {
     it('returns a target at the bounds center and a distance that contains the model', () => {
       const fit = getCameraFit(
@@ -118,12 +123,33 @@ describe('hero scene', () => {
       expect(getHeroCameraDefaults(ruinedCityStage, camera)).toEqual(camera);
     });
 
-    it('keeps the existing defaults for non-city stages', () => {
+    it('frames the maintenance bay and forest clearing from distinct fitted directions', () => {
+      expect(getHeroCameraDefaults(stage)).toEqual({ position: [8, 10, 34], target: [0, 6, 0] });
+      expect(getHeroCameraDefaults(forestStage)).toEqual({ position: [-8, 10, 34], target: [0, 6, 0] });
+      const camera = { position: [1, 2, 3] as [number, number, number], target: [4, 5, 6] as [number, number, number] };
+      expect(getHeroCameraDefaults(stage, camera)).toEqual(camera);
+      expect(getHeroCameraDefaults(forestStage, camera)).toEqual(camera);
+    });
+
+    it('keeps the legacy Space defaults', () => {
       const expected = { position: [4, 2.5, 6], target: [0, 0, 0] };
 
-      expect(getHeroCameraDefaults(stage)).toEqual(expected);
       expect(getHeroCameraDefaults(spaceStage)).toEqual(expected);
     });
+  });
+
+  it('applies mild Forest fog and hides the grid, clearing fog on switching and unmount', () => {
+    sceneState.scene = new Scene();
+    const { container, rerender, unmount } = render(<StageScene stage={forestStage} />);
+    expect(sceneState.scene.fog).toMatchObject({ near: 65, far: 150 });
+    expect(container.querySelector('gridHelper')).toBeNull();
+    rerender(<StageScene stage={stage} />);
+    expect(sceneState.scene.fog).toBeNull();
+    expect(container.querySelector('gridHelper')).not.toBeNull();
+    rerender(<StageScene stage={forestStage} />);
+    expect(sceneState.scene.fog).not.toBeNull();
+    unmount();
+    expect(sceneState.scene.fog).toBeNull();
   });
 
   describe('getHeightAwareScale', () => {

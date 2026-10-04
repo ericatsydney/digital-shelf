@@ -37,6 +37,8 @@ const ruinedCityCamera: HeroCameraDefaults = {
   position: [10, 12, 34],
   target: [0, 5, 0],
 };
+const hangarCamera: HeroCameraDefaults = { position: [8, 10, 34], target: [0, 6, 0] };
+const forestCamera: HeroCameraDefaults = { position: [-8, 10, 34], target: [0, 6, 0] };
 
 export function getCameraFit(
   bounds: Box3,
@@ -74,6 +76,8 @@ export function getHeroCameraDefaults(
   camera?: CollectionRecord['camera'],
 ): HeroCameraDefaults {
   if (camera) return camera;
+  if (stage.backdrop.variant === 'hangar') return hangarCamera;
+  if (stage.backdrop.variant === 'forest') return forestCamera;
   return stage.backdrop.variant === 'ruined-city' ? ruinedCityCamera : defaultCamera;
 }
 
@@ -195,6 +199,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       aria-label={`${unit.title} 3D model`}
     >
       <Canvas
+        gl={{ preserveDrawingBuffer: true }}
         camera={camera}
         dpr={canvasDpr}
         onCreated={handleCanvasCreated}

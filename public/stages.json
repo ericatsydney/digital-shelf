@@ -14,17 +14,17 @@
     }
   },
   {
-    "id": "space",
-    "name": "Space",
-    "background": "#02040c",
-    "gridColor": "#29336d",
-    "accentColor": "#8d9cff",
-    "ambientIntensity": 0.35,
-    "directionalIntensity": 0.85,
+    "id": "forest",
+    "name": "Forest",
+    "background": "#15251f",
+    "gridColor": "#314b36",
+    "accentColor": "#a5c880",
+    "ambientIntensity": 0.85,
+    "directionalIntensity": 1.25,
     "backdrop": {
-      "variant": "space",
-      "particleCount": 72,
-      "motion": 0.35
+      "variant": "forest",
+      "particleCount": 0,
+      "motion": 0
     }
   },
   {

@@ -1,8 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { validateStageRecord } from '../src/data/stages';
+import shippedStages from '../public/stages.json';
 import { getRuinedCityBuildings, getRuinedCityStreetDimensions } from '../src/scene/StageBackdrop';
 
 describe('stage backdrop validation', () => {
+  it('accepts the static Forest backdrop', () => {
+    expect(validateStageRecord({
+      id: 'forest', name: 'Forest', background: '#15251f', gridColor: '#314b36',
+      accentColor: '#a5c880', ambientIntensity: 0.85, directionalIntensity: 1.25,
+      backdrop: { variant: 'forest', particleCount: 0, motion: 0 },
+    })).toMatchObject({ backdrop: { variant: 'forest', particleCount: 0, motion: 0 } });
+  });
+
+  it('rejects unknown backdrop variants', () => {
+    expect(validateStageRecord({
+      ...shippedStages[0], backdrop: { variant: 'bogus', particleCount: 0, motion: 0 },
+    })).toBeNull();
+  });
+
+  it('ships Hangar, Forest, and Ruined City as valid selectable stages', () => {
+    const records = shippedStages.map(validateStageRecord);
+    expect(records.every((record) => record !== null)).toBe(true);
+    expect(records.map((record) => record?.id)).toEqual(['hangar', 'forest', 'ruined-city']);
+    expect(records[1]).toMatchObject({
+      name: 'Forest', background: '#15251f', gridColor: '#314b36',
+      accentColor: '#a5c880', ambientIntensity: 0.85, directionalIntensity: 1.25,
+      backdrop: { variant: 'forest', particleCount: 0, motion: 0 },
+    });
+  });
+
   it('accepts a configured hologram backdrop', () => {
     expect(validateStageRecord({
       id: 'space', name: 'Space', background: '#02040c', gridColor: '#29336d',

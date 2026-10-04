@@ -4,6 +4,8 @@ Digital Shelf is a private, client-only tactical showcase for locally owned GLB/
 
 All collection metadata, models, stages, and runtime libraries are local to the built site. There is no backend, database, authentication, analytics, CDN asset, or remote model request.
 
+The three stages surround the hero with local geometry: Hangar is a maintenance bay with steel beams, catwalks, crates and floor markings; Forest is a clearing with layered trees, rocks, a worn path and mild distance fog; Ruined City remains a damaged urban roadway. Stage changes restore a fitted camera view, with orbit, pan and zoom available afterward. Forest hides the tactical grid, and its fog is included in PNG captures.
+
 ## Requirements
 
 - Node.js 20 or newer

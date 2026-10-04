@@ -2,15 +2,12 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, type Mesh, type Points } from 'three';
 import type { StageBackdropConfig, StageRecord } from '../app/types';
+import { HangarBackdrop } from './HangarBackdrop';
+import { ForestBackdrop } from './ForestBackdrop';
 
 type StageBackdropProps = {
   stage: Pick<StageRecord, 'accentColor'>;
   config: StageBackdropConfig;
-};
-
-type Marker = {
-  position: [number, number, number];
-  rotation: [number, number, number];
 };
 
 type Building = {
@@ -71,13 +68,6 @@ export function getRuinedCityBuildings(): Building[] {
   }));
 }
 
-const hangarMarkers: Marker[] = [
-  { position: [-2.6, -1.15, -1.2], rotation: [0, 0, 0] },
-  { position: [2.6, -1.15, -1.2], rotation: [0, 0, 0] },
-  { position: [-2.6, -1.15, 1.4], rotation: [0, Math.PI / 2, 0] },
-  { position: [2.6, -1.15, 1.4], rotation: [0, Math.PI / 2, 0] },
-];
-
 const seededUnit = (seed: number) => {
   const value = Math.sin(seed * 12.9898) * 43758.5453;
   return value - Math.floor(value);
@@ -102,29 +92,6 @@ function usePrefersReducedMotion() {
   }, []);
 
   return reducedMotion;
-}
-
-function HangarBackdrop({ color }: { color: string }) {
-  const markers = useMemo(() => hangarMarkers, []);
-
-  return (
-    <group>
-      <mesh position={[0, -1.2, -1.4]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[3.2, 0.025, 8, 64]} />
-        <meshBasicMaterial color={color} transparent opacity={0.7} />
-      </mesh>
-      <mesh position={[0, -1.19, -1.4]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.4, 0.012, 8, 48]} />
-        <meshBasicMaterial color={color} transparent opacity={0.45} />
-      </mesh>
-      {markers.map((marker) => (
-        <mesh key={marker.position.join(':')} position={marker.position} rotation={marker.rotation}>
-          <boxGeometry args={[0.42, 0.04, 0.12]} />
-          <meshBasicMaterial color={color} transparent opacity={0.8} />
-        </mesh>
-      ))}
-    </group>
-  );
 }
 
 function SpaceDrift({ pointsRef, motion }: { pointsRef: RefObject<Points | null>; motion: number }) {
@@ -310,6 +277,8 @@ export function StageBackdrop({ stage, config }: StageBackdropProps) {
   );
 
   switch (effectiveConfig.variant) {
+    case 'forest':
+      return <ForestBackdrop />;
     case 'space':
       return <SpaceBackdrop color={stage.accentColor} config={effectiveConfig} />;
     case 'ruined-city':
