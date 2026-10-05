@@ -33,12 +33,12 @@ export function HangarBackdrop({ color }: { color: string }) {
           ))}
           <mesh position={[side * 12, bay.floorY + 0.035, -8]}>
             <boxGeometry args={[0.18, 0.025, 55]} />
-            <meshBasicMaterial color="#d1ae45" />
+            <meshStandardMaterial color="#d1ae45" roughness={0.9} />
           </mesh>
           {Array.from({ length: 12 }, (_, i) => (
             <mesh key={i} position={[side * 14, bay.floorY + 0.04, -30 + i * 4]} rotation={[0, side * 0.5, 0]}>
               <boxGeometry args={[2.2, 0.03, 0.32]} />
-              <meshBasicMaterial color="#d1ae45" />
+              <meshStandardMaterial color="#d1ae45" roughness={0.9} />
             </mesh>
           ))}
         </group>

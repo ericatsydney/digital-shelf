@@ -169,7 +169,7 @@ function StreetSurface({ color }: { color: string }) {
     <group>
       <mesh position={[0, -1.29, 0]}>
         <boxGeometry args={[roadwayWidth, 0.08, streetLength]} />
-        <meshBasicMaterial color="#17181d" />
+        <meshStandardMaterial color="#17181d" roughness={1} />
       </mesh>
       {laneBoundaryXs.flatMap((x) => laneMarkerZs.map((z) => (
         <mesh key={`${x}:${z}`} position={[x, -1.235, z]}>
@@ -179,7 +179,7 @@ function StreetSurface({ color }: { color: string }) {
       )))}
       <mesh position={[0, -1.235, 0]}>
         <boxGeometry args={[centerDividerWidth, 0.04, streetLength]} />
-        <meshBasicMaterial color="#8e7659" transparent opacity={0.8} />
+        <meshStandardMaterial color="#8e7659" roughness={0.9} transparent opacity={0.8} />
       </mesh>
     </group>
   );
@@ -193,11 +193,11 @@ function Sidewalk({ side, color }: { side: -1 | 1; color: string }) {
     <group>
       <mesh position={[sidewalkCenterX, -1.17, 0]}>
         <boxGeometry args={[sidewalkWidth, 0.16, streetLength]} />
-        <meshBasicMaterial color="#4b3b3b" />
+        <meshStandardMaterial color="#4b3b3b" roughness={1} />
       </mesh>
       <mesh position={[curbCenterX, -1.16, 0]}>
         <boxGeometry args={[0.2, 0.22, streetLength]} />
-        <meshBasicMaterial color={color} transparent opacity={0.55} />
+        <meshStandardMaterial color={color} roughness={0.9} transparent opacity={0.55} />
       </mesh>
     </group>
   );
@@ -213,11 +213,11 @@ function CityBuilding({ building, color }: { building: Building; color: string }
     <group>
       <mesh position={building.position}>
         <boxGeometry args={building.size} />
-        <meshBasicMaterial color={building.color} />
+        <meshStandardMaterial color={building.color} roughness={1} />
       </mesh>
       <mesh position={[x, y + height / 2 + 0.06, z]}>
         <boxGeometry args={[width + 0.12, 0.12, depth + 0.12]} />
-        <meshBasicMaterial color={color} transparent opacity={0.18} />
+        <meshStandardMaterial color={color} roughness={0.9} transparent opacity={0.18} />
       </mesh>
       {windowLevels.map((level) => (
         <mesh key={level} position={[roadFacingX, streetBaseY + height * level, z]}>
@@ -234,7 +234,7 @@ function DeploymentPad({ color }: { color: string }) {
     <group>
       <mesh position={[0, -1.22, 0]}>
         <cylinderGeometry args={[1.55, 1.55, 0.035, 32]} />
-        <meshBasicMaterial color="#2b2327" transparent opacity={0.95} />
+        <meshStandardMaterial color="#2b2327" roughness={0.9} transparent opacity={0.95} />
       </mesh>
       <mesh position={[0, -1.195, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.42, 0.028, 8, 40]} />
