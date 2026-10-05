@@ -6,10 +6,9 @@ import {
 } from '../src/state/tacticalState';
 
 describe('tactical state reducer', () => {
-  it('starts in a transient Hangar state with no unit or slot', () => {
+  it('starts in a transient Hangar state with no unit', () => {
     expect(initialTacticalState).toEqual({
       selectedUnitId: null,
-      selectedSlotId: null,
       stageId: 'hangar',
       unitStatus: 'idle',
       captureStatus: 'idle',
@@ -18,27 +17,20 @@ describe('tactical state reducer', () => {
     });
   });
 
-  it('selects a unit, clears the slot, and creates the newest loading request', () => {
+  it('replaces the selected unit, preserves the stage, and creates the newest loading request', () => {
     const state: TacticalState = {
       ...initialTacticalState,
       selectedUnitId: 'old-unit',
-      selectedSlotId: 'slot-alpha',
+      stageId: 'forest',
       loadRequestId: 4,
     };
 
     expect(tacticalReducer(state, { type: 'select-unit', unitId: 'new-unit' })).toEqual({
       ...state,
       selectedUnitId: 'new-unit',
-      selectedSlotId: null,
       unitStatus: 'loading',
       loadRequestId: 5,
     });
-  });
-
-  it('selects a fixed deployment slot', () => {
-    expect(
-      tacticalReducer(initialTacticalState, { type: 'select-slot', slotId: 'slot-bravo' }),
-    ).toMatchObject({ selectedSlotId: 'slot-bravo' });
   });
 
   it('changes the active stage', () => {

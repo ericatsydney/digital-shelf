@@ -1,6 +1,6 @@
 # Digital Shelf
 
-Digital Shelf is a private, client-only tactical showcase for locally owned GLB/GLTF figure and Gunpla models. The MVP presents one selected hero model at a time, fixed deployment slots, local tactical stages, orbit controls, and PNG capture.
+Digital Shelf is a private, client-only tactical showcase for locally owned GLB/GLTF figure and Gunpla models. The MVP presents one selected hero model at a time, local tactical stages, orbit controls, and PNG capture.
 
 All collection metadata, models, stages, and runtime libraries are local to the built site. There is no backend, database, authentication, analytics, CDN asset, or remote model request.
 
@@ -40,7 +40,7 @@ Run the browser smoke tests against the local app:
 npx playwright test
 ```
 
-The smoke tests start Vite on `http://127.0.0.1:4173`, use the real local collection and `public/models/haro-green.glb`, and cover collection rendering, Haro selection, fixed-slot deployment, stage switching, hero presence, PNG capture, and the narrow mobile layout. If Playwright reports that Chromium is unavailable, install the browser separately only when you explicitly choose to do so.
+The smoke tests start Vite on `http://127.0.0.1:4173`, use the real local collection and `public/models/haro-green.glb`, and cover collection rendering, Haro selection, absence of deployment controls, stage switching, hero presence, PNG capture, and the narrow mobile layout. If Playwright reports that Chromium is unavailable, install the browser separately only when you explicitly choose to do so.
 
 ## Production build and preview
 
@@ -87,4 +87,4 @@ tests/*.test.ts         Vitest unit/component tests
 tests/*.smoke.spec.ts   Playwright browser smoke tests
 ```
 
-The tactical deployment state is intentionally transient: refreshing or navigating back resets the current selection, slot, and stage to the default hangar state.
+The tactical showcase state is intentionally transient: refreshing or navigating back resets the current selection and stage to the default hangar state.

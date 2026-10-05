@@ -97,7 +97,7 @@ export function App() {
               {state.unitStatus === 'error' && <p role="alert">Model unavailable</p>}
             </>
           ) : (
-            <p>Select a unit from the roster to deploy it.</p>
+            <p>Select a unit from the roster to view it.</p>
           )}
         </div>
       </section>
@@ -106,11 +106,9 @@ export function App() {
         records={records}
         skipped={skipped}
         selectedUnit={selectedUnit}
-        selectedSlotId={state.selectedSlotId}
         stages={stages}
         selectedStageId={state.stageId}
         onSelectUnit={(unitId) => dispatch({ type: 'select-unit', unitId })}
-        onSelectSlot={(slotId) => dispatch({ type: 'select-slot', slotId })}
         onSelectStage={(stageId) => dispatch({ type: 'select-stage', stageId })}
       />
     </main>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/app/App';
 
@@ -58,7 +58,7 @@ describe('command UI', () => {
     expect(screen.getByText('Loading collection…')).toBeInTheDocument();
   });
 
-  it('renders the hero command deck and dispatches unit, slot, and stage actions', async () => {
+  it('renders a single-model command deck without deployment controls', async () => {
     mockFetch(collection);
     render(<App />);
 
@@ -66,18 +66,30 @@ describe('command UI', () => {
     expect(screen.getByText('Hero display')).toBeInTheDocument();
     expect(screen.getByText('Support Unit')).toBeInTheDocument();
     expect(screen.getByText('mascot')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Deployment slot Alpha/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
+    expect(screen.getByText('Select a unit from the roster to view it.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Haro Green/i }));
     expect(screen.getByText('Loading unit…')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Deployment slot Alpha/i }));
-    expect(screen.getByRole('button', { name: /Deployment slot Alpha/i })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
+    expect(screen.getByRole('button', { name: 'Space stage' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('replaces the selected model while retaining the active stage', async () => {
+    mockFetch([...collection, { ...collection[0], id: 'haro-blue', title: 'Haro Blue', model: '/models/haro-blue.glb' }]);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Haro Green/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
+    fireEvent.click(screen.getByRole('button', { name: /Haro Blue/i }));
+
+    expect(screen.getByRole('region', { name: 'Hero display' })).toHaveTextContent('Haro Blue');
+    expect(screen.getByRole('region', { name: 'Hero display' })).not.toHaveTextContent('Haro Green');
     expect(screen.getByRole('button', { name: 'Space stage' })).toHaveAttribute('aria-pressed', 'true');
   });
 

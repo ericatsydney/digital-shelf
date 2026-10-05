@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('tactical showcase', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('renders the local collection and deploys Haro into a fixed slot', async ({ page }) => {
+  test('renders the local collection and shows one hero without deployment controls', async ({ page }) => {
     const modelResponse = page.waitForResponse(
       (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
     );
@@ -13,6 +13,8 @@ test.describe('tactical showcase', () => {
     await expect(page.getByRole('heading', { name: 'Hero display' })).toBeVisible();
     await expect(page.getByText('1 units')).toBeVisible();
     await expect(page.getByRole('button', { name: /Haro Green/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
+    await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
 
     await page.getByRole('button', { name: /Haro Green/ }).click();
     await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Haro Green', { exact: true })).toBeVisible();
@@ -20,9 +22,8 @@ test.describe('tactical showcase', () => {
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await modelResponse;
 
-    const alphaSlot = page.getByRole('button', { name: 'Deployment slot Alpha' });
-    await alphaSlot.click();
-    await expect(alphaSlot).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
+    await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
   });
 
   test('keeps the page mounted when Haro finishes loading', async ({ page }) => {
@@ -159,6 +160,8 @@ test.describe('tactical showcase', () => {
     test.setTimeout(60_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
+    await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
+    await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
 
     await page.getByRole('button', { name: /Haro Green/ }).click();
 
@@ -168,7 +171,8 @@ test.describe('tactical showcase', () => {
     await expect(hero).toBeVisible();
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await expect(commandSheet).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Deployment slot Bravo' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
+    await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Ruined City stage' })).toBeVisible();
 
     for (const variant of ['forest', 'hangar']) {

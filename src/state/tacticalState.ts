@@ -1,6 +1,5 @@
 export type TacticalState = {
   selectedUnitId: string | null;
-  selectedSlotId: string | null;
   stageId: string;
   unitStatus: 'idle' | 'loading' | 'ready' | 'error';
   captureStatus: 'idle' | 'capturing' | 'error';
@@ -10,7 +9,6 @@ export type TacticalState = {
 
 export type TacticalAction =
   | { type: 'select-unit'; unitId: string }
-  | { type: 'select-slot'; slotId: string }
   | { type: 'select-stage'; stageId: string }
   | { type: 'unit-ready'; requestId: number }
   | { type: 'unit-error'; requestId: number }
@@ -20,7 +18,6 @@ export type TacticalAction =
 
 export const initialTacticalState: TacticalState = {
   selectedUnitId: null,
-  selectedSlotId: null,
   stageId: 'hangar',
   unitStatus: 'idle',
   captureStatus: 'idle',
@@ -34,12 +31,9 @@ export function tacticalReducer(state: TacticalState, action: TacticalAction): T
       return {
         ...state,
         selectedUnitId: action.unitId,
-        selectedSlotId: null,
         unitStatus: 'loading',
         loadRequestId: state.loadRequestId + 1,
       };
-    case 'select-slot':
-      return { ...state, selectedSlotId: action.slotId };
     case 'select-stage':
       return {
         ...state,
