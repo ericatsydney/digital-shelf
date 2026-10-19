@@ -4,8 +4,21 @@
     "title": "Haro Green",
     "category": "Figure",
     "description": "Green Haro display model.",
-    "tags": ["mascot", "gunpla"],
+    "tags": [
+      "mascot",
+      "gunpla"
+    ],
     "model": "/models/haro-green.glb",
     "heightMeters": 18
+  },
+  {
+    "id": "hyaku-shiki",
+    "title": "Hyaku-Shiki",
+    "category": "Figure",
+    "model": "/models/hyaku-shiki.glb",
+    "heightMeters": 18.5,
+    "display": {
+      "rotationYDegrees": 90
+    }
   }
 ]

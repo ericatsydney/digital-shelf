@@ -135,3 +135,11 @@ describe('stage validation and loading', () => {
     } satisfies Partial<StageLoadError>);
   });
 });
+
+describe('display.rotationYDegrees', () => {
+  it('accepts a finite number and rejects other values', () => {
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { rotationYDegrees: 90 } })).not.toBeNull();
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { rotationYDegrees: 'left' } })).toBeNull();
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { rotationYDegrees: Number.NaN } })).toBeNull();
+  });
+});

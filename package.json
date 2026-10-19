@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "model:generate": "tsx tools/model-generator/cli.ts"
   },
   "dependencies": {
     "@react-three/drei": "latest",
@@ -21,11 +22,13 @@
     "@playwright/test": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
+    "@types/node": "^26.6.5",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/three": "latest",
     "@vitejs/plugin-react": "latest",
     "jsdom": "latest",
+    "tsx": "^4.23.15",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"

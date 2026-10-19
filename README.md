@@ -58,6 +58,23 @@ npm run preview
 
 The production preview should serve `/collection.json`, `/stages.json`, and `/models/haro-green.glb` from the same origin.
 
+## Generate a model from images (Tripo)
+
+Turns 1 image, or 2-4 images of the same object (front, left, back, right order; filenames containing `front`/`back`/`left`/`right` are honoured), into one untextured GLB and registers it in `public/collection.json`.
+
+One-time setup:
+
+1. `npm install -g tripo-cli` (Node 20+).
+2. Copy `.env.example` to `.env.local` (or `.env`) and set `TRIPO_API_KEY`. `.env.local` is git-ignored. Never commit keys.
+
+Run:
+
+```powershell
+npm run model:generate -- front.png back.png --title "Haro Blue" --height 18
+```
+
+Options: `--id`, `--category` (default `Figure`), `--description`, `--tags a,b`, `--height <meters>`, `--force` (overwrite an existing id). The command stops before spending credits if the id already exists. Texture generation is off for now.
+
 ## Cloudflare deployment
 
 ### Cloudflare Pages

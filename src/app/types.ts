@@ -14,6 +14,8 @@ export type CollectionRecord = {
   display?: {
     stageId?: string;
     scale?: number;
+    /** Clockwise (seen from above) turn applied to the model, in degrees. */
+    rotationYDegrees?: number;
   };
 };
 

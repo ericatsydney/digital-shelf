@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Box3, Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
-import { getHeightAwareScale } from '../src/scene/HeroModel';
+import { getGroundOffsetY, getHeightAwareScale, getRotationRadians } from '../src/scene/HeroModel';
 import { getCameraFit, getHeroCameraDefaults } from '../src/scene/HeroCanvas';
 
 const { sceneState } = vi.hoisted(() => ({ sceneState: { scene: null as Scene | null } }));
@@ -150,6 +150,20 @@ describe('hero scene', () => {
     expect(sceneState.scene.fog).not.toBeNull();
     unmount();
     expect(sceneState.scene.fog).toBeNull();
+  });
+
+  describe('model placement', () => {
+    it('lifts a centered model so its feet sit on y = 0', () => {
+      expect(getGroundOffsetY(-0.5)).toBe(0.5);
+      expect(getGroundOffsetY(0)).toBe(0);
+      expect(getGroundOffsetY(Number.NaN)).toBe(0);
+    });
+
+    it('converts display.rotationYDegrees to radians, clockwise from above for positive degrees', () => {
+      expect(getRotationRadians(undefined)).toBe(0);
+      expect(getRotationRadians(90)).toBeCloseTo(-Math.PI / 2);
+      expect(getRotationRadians(-90)).toBeCloseTo(Math.PI / 2);
+    });
   });
 
   describe('getHeightAwareScale', () => {

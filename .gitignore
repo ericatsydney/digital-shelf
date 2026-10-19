@@ -6,3 +6,7 @@ tsconfig.tsbuildinfo
 .superpowers/
 memory/
 .DS_Store
+.env*
+!.env.example
+.tripo/
+assets/source-images/

@@ -70,6 +70,17 @@ For the Digital Shelf 3D model flow, click the Haro Green button and confirm tha
 
 Do not proceed to code review if any command fails.
 
+### Secret check (required before handing over any change)
+
+Make sure no secret or API key can enter a commit:
+
+```powershell
+git ls-files | Select-String -Pattern '(^|/)\.env' | Where-Object { $_ -notmatch '\.env\.example$' }
+git diff HEAD | Select-String -Pattern 'TRIPO_API_KEY\s*=\s*\S|tsk_[A-Za-z0-9]{8,}|(api[_-]?key|secret|token)\s*[:=]\s*["'']?[A-Za-z0-9_\-]{16,}'
+```
+
+Both commands must print nothing (also scan untracked files that will be added). Any match is a Critical finding: remove the secret, tell the user to rotate the key, and do not hand over until clean. Real keys live only in git-ignored `.env.local` or OS environment variables; only `.env.example` (variable names, no values) may be tracked. Never print key values in chat, logs, or test output.
+
 ## 6. Code review
 
 Run the code-review skill against the working-tree diff:

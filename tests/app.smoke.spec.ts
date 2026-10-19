@@ -11,7 +11,7 @@ test.describe('tactical showcase', () => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: 'Hero display' })).toBeVisible();
-    await expect(page.getByText('1 units')).toBeVisible();
+    await expect(page.getByText('2 units')).toBeVisible();
     await expect(page.getByRole('button', { name: /Haro Green/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
