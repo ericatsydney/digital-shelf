@@ -3,12 +3,15 @@ import { tmpdir } from 'node:os';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { compressGlb } from './compress';
 import { CollectionError, assertNoDuplicate, buildRecord, installModel } from './collection';
 import { ConfigError, loadApiKey } from './config';
 import { GeneratorError, createTripoCliGenerator, type ModelGenerator } from './generator';
 
 const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+// Cloudflare Pages / Workers Static Assets reject any single file above 25 MiB.
+const MAX_MODEL_BYTES = 25 * 1024 * 1024;
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const UNSAFE_PATH = /["&|<>^%`$;]/;
 
@@ -18,6 +21,7 @@ export type CliDeps = {
   env: NodeJS.ProcessEnv;
   log: (message: string) => void;
   createGenerator: (apiKey: string) => ModelGenerator;
+  compress: (inputPath: string, outputPath: string) => Promise<void>;
 };
 
 class UsageError extends Error {}
@@ -42,6 +46,7 @@ function validateImages(paths: string[], cwd: string): string[] {
 export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
   let tempDir: string | undefined;
   let secret: string | undefined;
+  let keepTempDir = false;
   try {
     const { values, positionals } = parseArgs({
       args: argv,
@@ -79,7 +84,22 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
     tempDir = mkdtempSync(join(tmpdir(), 'tripo-'));
     deps.log(`Generating "${record.title}" from ${images.length} image(s)...`);
     const result = await deps.createGenerator(apiKey).generate(images, tempDir);
-    installModel(deps.publicDir, record, result.modelFile, values.force);
+
+    // Credits are spent by now, so keep the raw GLB around if anything below fails.
+    keepTempDir = true;
+    const compressed = join(tempDir, 'model.compressed.glb');
+    deps.log('Compressing the model (Meshopt)...');
+    try {
+      await deps.compress(result.modelFile, compressed);
+    } catch (error) {
+      throw new GeneratorError(`Could not compress the model: ${(error as Error).message}. Raw GLB kept at ${result.modelFile}`);
+    }
+    const size = statSync(compressed).size;
+    if (size > MAX_MODEL_BYTES) {
+      throw new GeneratorError(`The compressed model is ${(size / 1024 / 1024).toFixed(1)} MiB, above the 25 MiB Cloudflare asset limit. Raw GLB kept at ${result.modelFile}`);
+    }
+    installModel(deps.publicDir, record, compressed, values.force);
+    keepTempDir = false;
     deps.log(`Saved public${record.model} and added "${record.id}" to public/collection.json.`);
     if (result.creditsConsumed !== undefined) deps.log(`Credits used: ${result.creditsConsumed}`);
     return 0;
@@ -89,7 +109,7 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
     deps.log(`Error: ${secret ? message.split(secret).join('[redacted]') : message}`);
     return known && error instanceof UsageError ? 2 : 1;
   } finally {
-    if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+    if (tempDir && !keepTempDir) rmSync(tempDir, { recursive: true, force: true });
   }
 }
 
@@ -102,5 +122,6 @@ if (isMain) {
     env: process.env,
     log: (message) => console.log(message),
     createGenerator: (apiKey) => createTripoCliGenerator({ apiKey }),
+    compress: compressGlb,
   }).then((code) => process.exit(code));
 }

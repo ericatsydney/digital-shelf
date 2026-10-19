@@ -21,8 +21,11 @@ function setup() {
       return { modelFile: file, creditsConsumed: 30 };
     }),
   };
-  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: () => generator };
-  return { root, pub, out, generator, deps };
+  const compress = vi.fn(async (_input: string, output: string) => {
+    writeFileSync(output, 'small');
+  });
+  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: () => generator, compress };
+  return { root, pub, out, generator, compress, deps };
 }
 
 const list = (pub: string) => JSON.parse(readFileSync(join(pub, 'collection.json'), 'utf8'));
@@ -33,7 +36,7 @@ describe('runCli', () => {
     const code = await runCli(['front.png', 'back.png', '--title', 'Haro Blue', '--height', '18', '--tags', 'a,b'], deps);
     expect(code).toBe(0);
     expect(generator.generate.mock.calls[0][0]).toEqual([join(root, 'front.png'), join(root, 'back.png')]);
-    expect(existsSync(join(pub, 'models', 'haro-blue.glb'))).toBe(true);
+    expect(readFileSync(join(pub, 'models', 'haro-blue.glb'), 'utf8')).toBe('small');
     expect(list(pub)[0]).toMatchObject({ id: 'haro-blue', heightMeters: 18, tags: ['a', 'b'], model: '/models/haro-blue.glb' });
   });
 
@@ -78,5 +81,26 @@ describe('runCli', () => {
     expect(list(pub)).toEqual([]);
     expect(existsSync(join(pub, 'models', 'x.glb'))).toBe(false);
     expect(out.join('\n')).not.toContain('SECRET');
+  });
+
+  it('keeps the raw GLB and reports its path when compression fails', async () => {
+    const { pub, out, deps } = setup();
+    const failing = vi.fn(async () => { throw new Error('encoder crashed'); });
+    expect(await runCli(['front.png', '--title', 'X'], { ...deps, compress: failing })).not.toBe(0);
+    expect(list(pub)).toEqual([]);
+    const text = out.join('\n');
+    expect(text).toMatch(/compress/i);
+    const kept = /Raw GLB kept at (.+)$/m.exec(text)?.[1];
+    expect(kept && existsSync(kept)).toBe(true);
+  });
+
+  it('refuses a model still above the Cloudflare 25 MiB asset limit', async () => {
+    const { pub, out, deps } = setup();
+    const big = vi.fn(async (_i: string, output: string) => {
+      writeFileSync(output, Buffer.alloc(26 * 1024 * 1024));
+    });
+    expect(await runCli(['front.png', '--title', 'X'], { ...deps, compress: big })).not.toBe(0);
+    expect(out.join('\n')).toMatch(/25 MiB/);
+    expect(list(pub)).toEqual([]);
   });
 });

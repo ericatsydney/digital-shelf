@@ -51,3 +51,6 @@ Generator with injected fake `execFile` (success, each exit code, missing binary
 - `tripo make` takes 1 image (image-to-model) or 2-4 images (multiview, front required; filename hints or positional front,left,back,right order). Wrapper allows 1-4 images.
 - Geometry-only: `-p texture=false -p pbr=false`. Wrapper also passes `--json --yes --quiet -o <tempdir>`; `-o` is a directory and the JSON result's `model_file` is checked to be a `.glb`.
 - `tripo make ... --dry-run --json` works without a key and spends nothing.
+
+## Addendum: automatic Meshopt compression
+Cloudflare Pages/Workers Static Assets reject files above 25 MiB and a raw geometry-only Tripo GLB was 42.8 MB. After generation `tools/model-generator/compress.ts` (gltf-transform `meshopt`, level high; Meshopt chosen over Draco because drei's default Draco decoder loads from a CDN, whereas the Meshopt decoder is bundled) compresses the GLB (42.8 -> 7.8 MB). The CLI refuses to install a model still above 25 MiB, and when compression or the size check fails after credits were spent it keeps the raw GLB in its temp folder and prints the path.

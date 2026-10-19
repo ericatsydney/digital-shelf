@@ -75,6 +75,8 @@ npm run model:generate -- front.png back.png --title "Haro Blue" --height 18
 
 Options: `--id`, `--category` (default `Figure`), `--description`, `--tags a,b`, `--height <meters>`, `--force` (overwrite an existing id). The command stops before spending credits if the id already exists. Texture generation is off for now.
 
+After generating, the model is Meshopt-compressed automatically (the app decodes it locally, with no extra request) and must come out under 25 MiB, the Cloudflare per-file limit; otherwise nothing is installed and the raw GLB is kept in a temp folder whose path is printed.
+
 ## Cloudflare deployment
 
 ### Cloudflare Pages

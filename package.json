@@ -19,6 +19,9 @@
     "three": "latest"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@playwright/test": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
@@ -28,6 +31,7 @@
     "@types/three": "latest",
     "@vitejs/plugin-react": "latest",
     "jsdom": "latest",
+    "meshoptimizer": "^1.3.0",
     "tsx": "^4.23.15",
     "typescript": "latest",
     "vite": "latest",
