@@ -5,7 +5,7 @@
     "background": "#07111f",
     "gridColor": "#284c6e",
     "accentColor": "#55d6ff",
-    "ambientIntensity": 0.6,
+    "ambientIntensity": 0.9,
     "directionalIntensity": 1.2,
     "backdrop": {
       "variant": "hangar",

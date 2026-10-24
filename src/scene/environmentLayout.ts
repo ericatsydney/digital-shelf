@@ -6,9 +6,11 @@ export function getHangarLayout() {
   return {
     width: 58, height: 29, rearZ: -36, floorY: -1.25,
     beamZs: [-32, -18, -4, 10],
-    crates: [-1, 1].flatMap(side => [-27, -18, 7].map((z, i): EnvironmentBox => ({
-      position: [side * (20 + i * 1.4), 0.75, z], size: [3.6, 4, 3.6],
-    }))),
+    crates: [
+      { position: [15.5, 0.75, -3], size: [3.6, 4, 3.6] },
+      { position: [19.4, 0.75, -3.4], size: [3.6, 4, 3.6] },
+      { position: [15.6, 4.25, -3], size: [3.2, 3, 3.2] },
+    ] as EnvironmentBox[],
   };
 }
 

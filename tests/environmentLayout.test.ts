@@ -19,6 +19,15 @@ describe('environment layouts', () => {
     expect(trees.every(tree => tree.color !== '#294936' && tree.color !== '#203e32')).toBe(true);
   });
 
+  it('keeps only a few crates, clear of the platform', () => {
+    const { crates } = getHangarLayout();
+    expect(crates).toHaveLength(3);
+    expect(crates.every((crate) => Math.hypot(crate.position[0], crate.position[2]) - crate.size[0] > 10)).toBe(true);
+    const [first, ...others] = crates;
+    expect(others.every((crate) => Math.hypot(crate.position[0] - first.position[0], crate.position[2] - first.position[2]) < 6)).toBe(true);
+    expect(Math.max(...crates.map((crate) => crate.position[1]))).toBeGreaterThan(Math.min(...crates.map((crate) => crate.position[1])) + 2);
+  });
+
   it('surrounds the 18 metre model with a spacious, open-front maintenance bay', () => {
     const layout = getHangarLayout();
     expect(layout.width).toBeGreaterThan(48);

@@ -4,7 +4,7 @@ import { Box3, Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
 import { getGroundOffsetY, getHeightAwareScale, getRotationRadians } from '../src/scene/HeroModel';
-import { getCameraFit, getHeroCameraDefaults } from '../src/scene/HeroCanvas';
+import { getCameraFit, getHeroCameraDefaults, getHeroControlsMode } from '../src/scene/HeroCanvas';
 
 const { sceneState } = vi.hoisted(() => ({ sceneState: { scene: null as Scene | null } }));
 vi.mock('@react-three/fiber', () => ({
@@ -22,6 +22,7 @@ vi.mock('@react-three/fiber', () => ({
 
 vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls" />,
+  PresentationControls: ({ children }: { children: React.ReactNode }) => <div data-testid="presentation-controls">{children}</div>,
   Grid: () => <div data-testid="grid" />,
   useGLTF: () => ({ scene: {} }),
 }));
@@ -143,7 +144,7 @@ describe('hero scene', () => {
     const { container, rerender, unmount } = render(<StageScene stage={forestStage} />);
     expect(sceneState.scene.fog).toMatchObject({ near: 65, far: 150 });
     expect(container.querySelector('gridHelper')).toBeNull();
-    rerender(<StageScene stage={stage} />);
+    rerender(<StageScene stage={spaceStage} />);
     expect(sceneState.scene.fog).toBeNull();
     expect(container.querySelector('gridHelper')).not.toBeNull();
     rerender(<StageScene stage={forestStage} />);
@@ -158,9 +159,24 @@ describe('hero scene', () => {
     rerender(<StageScene stage={ruinedCityStage} />);
     expect(container.querySelector('[data-testid="sky-dome"]')).not.toBeNull();
     expect(container.querySelector('gridHelper')).toBeNull();
-    rerender(<StageScene stage={stage} />);
+    rerender(<StageScene stage={spaceStage} />);
     expect(container.querySelector('[data-testid="sky-dome"]')).toBeNull();
     expect(container.querySelector('gridHelper')).not.toBeNull();
+  });
+
+  it('lights the Hangar from the front without a floor grid, and only the Hangar', () => {
+    const { container, rerender } = render(<StageScene stage={stage} />);
+    expect(container.querySelector('gridHelper')).toBeNull();
+    const lights = Array.from(container.querySelectorAll('directionalLight'));
+    expect(lights.length).toBe(3);
+    const frontLights = lights.filter((light) => Number(light.getAttribute('position')?.split(',')[2]) > 25);
+    expect(frontLights).toHaveLength(2);
+    for (const light of frontLights) {
+      const [red, , blue] = [1, 3, 5].map((i) => parseInt((light.getAttribute('color') ?? '#ffffff').slice(i, i + 2), 16));
+      expect(red).toBeGreaterThan(blue);
+    }
+    rerender(<StageScene stage={spaceStage} />);
+    expect(container.querySelectorAll('directionalLight')).toHaveLength(1);
   });
 
   describe('model placement', () => {
@@ -197,6 +213,24 @@ describe('hero scene', () => {
     expect(screen.getByTestId('r3f-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('orbit-controls')).toBeInTheDocument();
     expect(screen.getByTestId('hero-model')).toBeInTheDocument();
+  });
+
+  it('spins a platform under a fixed camera on the Hangar and orbits the camera elsewhere', async () => {
+    const { HeroCanvas } = await import('../src/scene/HeroCanvas');
+    expect(getHeroControlsMode(stage)).toBe('turntable');
+    expect(getHeroControlsMode(forestStage)).toBe('orbit');
+    expect(getHeroControlsMode(ruinedCityStage)).toBe('orbit');
+    expect(getHeroControlsMode(spaceStage)).toBe('orbit');
+
+    const hangar = render(<HeroCanvas unit={unit} stage={stage} requestId={1} cameraResetId={0} />);
+    expect(screen.getByTestId('presentation-controls')).toContainElement(screen.getByTestId('hero-model'));
+    expect(screen.getByTestId('presentation-controls')).toContainElement(screen.getByTestId('turntable'));
+    hangar.unmount();
+
+    render(<HeroCanvas unit={unit} stage={forestStage} requestId={1} cameraResetId={0} />);
+    expect(screen.queryByTestId('presentation-controls')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('turntable')).not.toBeInTheDocument();
+    expect(screen.getByTestId('orbit-controls')).toBeInTheDocument();
   });
 
   it('shows an empty hero state without rendering a model when no unit is selected', async () => {

@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, PresentationControls } from '@react-three/drei';
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Box3, Sphere, Vector3 } from 'three';
 import { useThree } from '@react-three/fiber';
@@ -8,6 +8,7 @@ import type { CollectionRecord, StageRecord } from '../app/types';
 import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
 import { StageBackdrop } from './StageBackdrop';
+import { Turntable } from './Turntable';
 import { CaptureButton } from '../components/CaptureButton';
 
 const canvasDpr: [number, number] = [1, 2];
@@ -79,6 +80,11 @@ export function getHeroCameraDefaults(
   if (stage.backdrop.variant === 'hangar') return hangarCamera;
   if (stage.backdrop.variant === 'forest') return forestCamera;
   return stage.backdrop.variant === 'ruined-city' ? ruinedCityCamera : defaultCamera;
+}
+
+/** The Hangar spins a platform under a fixed camera; every other stage orbits the camera. */
+export function getHeroControlsMode(stage: Pick<StageRecord, 'backdrop'>): 'turntable' | 'orbit' {
+  return stage.backdrop.variant === 'hangar' ? 'turntable' : 'orbit';
 }
 
 class ErrorBoundary<P extends { children: ReactNode } = { children: ReactNode }> extends Component<
@@ -187,9 +193,18 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
     setCanvas(gl.domElement);
   }, []);
 
+  const turntable = getHeroControlsMode(stage) === 'turntable';
   if (!unit) {
     return <div className="hero-canvas hero-canvas--empty" role="status">Select a unit from the roster</div>;
   }
+
+  const model = (
+    <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>
+      <Suspense fallback={null}>
+        <HeroModel record={unit} onLoaded={handleReady} onBounds={handleBounds} />
+      </Suspense>
+    </HeroLoadBoundary>
+  );
 
   return (
     <div
@@ -206,11 +221,12 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       >
         <StageBackdrop stage={stage} config={stage.backdrop} />
         <StageScene stage={stage} />
-        <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>
-          <Suspense fallback={null}>
-            <HeroModel record={unit} onLoaded={handleReady} onBounds={handleBounds} />
-          </Suspense>
-        </HeroLoadBoundary>
+        {turntable ? (
+          <PresentationControls global polar={[0, 0]} azimuth={[-Infinity, Infinity]} speed={1.6} damping={0.2}>
+            <Turntable accentColor={stage.accentColor} />
+            {model}
+          </PresentationControls>
+        ) : model}
         <HeroCameraFit
           bounds={modelBounds}
           fallback={{ position: cameraPosition, target: cameraTarget }}
@@ -218,7 +234,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
           cameraResetId={cameraResetId}
           controlsRef={controlsRef}
         />
-        <OrbitControls ref={controlsRef} target={cameraTarget} enablePan enableZoom enableRotate />
+        <OrbitControls ref={controlsRef} target={cameraTarget} enablePan={!turntable} enableZoom enableRotate={!turntable} />
       </Canvas>
       {!loaded && !loadError && <LoadingFallback />}
       {loadError && <div className="hero-canvas__status" role="alert">Model unavailable</div>}
