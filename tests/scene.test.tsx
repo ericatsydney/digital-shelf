@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Box3, Scene, Vector3 } from 'three';
+import { Box3, BoxGeometry, Group, Mesh, Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
-import { getGroundOffsetY, getHeightAwareScale, getRotationRadians } from '../src/scene/HeroModel';
+import { getGroundOffsetY, getHeightAwareScale, getIntrinsicBounds, getRotationRadians } from '../src/scene/HeroModel';
 import { getCameraFit, getHeroCameraDefaults, getHeroControlsMode } from '../src/scene/HeroCanvas';
 
 const { sceneState } = vi.hoisted(() => ({ sceneState: { scene: null as Scene | null } }));
@@ -197,6 +197,19 @@ describe('hero scene', () => {
     it('scales a measured model to its declared height while preserving authored scale', () => {
       expect(getHeightAwareScale(2, 18, 1)).toBe(9);
       expect(getHeightAwareScale(2, 18, 1.25)).toBe(11.25);
+    });
+
+    it('measures a model by itself, ignoring the scale of whatever group it is currently mounted in', () => {
+      const model = new Group();
+      model.add(new Mesh(new BoxGeometry(2, 3, 2)));
+      const mount = new Group();
+      mount.scale.setScalar(20);
+      mount.add(model);
+      mount.updateMatrixWorld(true);
+
+      const bounds = getIntrinsicBounds(model);
+      expect(bounds.max.y - bounds.min.y).toBeCloseTo(3);
+      expect(model.parent).toBe(mount);
     });
 
     it('falls back to authored scale when height metadata or measured bounds are unavailable', () => {
