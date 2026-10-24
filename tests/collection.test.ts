@@ -7,10 +7,10 @@ import {
 import { StageLoadError, loadStages, validateStageRecord } from '../src/data/stages';
 
 const validCollectionRecord = {
-  id: 'haro-green',
-  title: 'Haro Green',
+  id: 'light-guncannon',
+  title: 'Light Guncannon',
   category: 'Mobile Suit',
-  model: '/models/haro-green.glb',
+  model: '/models/light-guncannon.glb',
   tags: ['mascot'],
 };
 
@@ -41,10 +41,10 @@ describe('collection validation and loading', () => {
   it('accepts a positive finite heightMeters value', () => {
     expect(
       validateCollectionRecord({
-        id: 'haro-green',
-        title: 'Haro Green',
+        id: 'light-guncannon',
+        title: 'Light Guncannon',
         category: 'Figure',
-        model: '/models/haro-green.glb',
+        model: '/models/light-guncannon.glb',
         heightMeters: 18,
       }),
     ).toMatchObject({ heightMeters: 18 });

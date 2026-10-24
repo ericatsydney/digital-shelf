@@ -24,20 +24,28 @@ function setup() {
   const compress = vi.fn(async (_input: string, output: string) => {
     writeFileSync(output, 'small');
   });
-  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: () => generator, compress };
+  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: vi.fn((_apiKey: string, _options?: { texture: boolean }) => generator), compress };
   return { root, pub, out, generator, compress, deps };
 }
 
 const list = (pub: string) => JSON.parse(readFileSync(join(pub, 'collection.json'), 'utf8'));
 
 describe('runCli', () => {
+  it('only enables texturing with --texture', async () => {
+    const { deps } = setup();
+    expect(await runCli(['front.png', '--title', 'Plain'], deps)).toBe(0);
+    expect(deps.createGenerator).toHaveBeenLastCalledWith('SECRET', { texture: false });
+    expect(await runCli(['front.png', '--title', 'Painted', '--texture'], deps)).toBe(0);
+    expect(deps.createGenerator).toHaveBeenLastCalledWith('SECRET', { texture: true });
+  });
+
   it('turns several images into one model and one record', async () => {
     const { root, pub, generator, deps } = setup();
-    const code = await runCli(['front.png', 'back.png', '--title', 'Haro Blue', '--height', '18', '--tags', 'a,b'], deps);
+    const code = await runCli(['front.png', 'back.png', '--title', 'Test Model', '--height', '18', '--tags', 'a,b'], deps);
     expect(code).toBe(0);
     expect(generator.generate.mock.calls[0][0]).toEqual([join(root, 'front.png'), join(root, 'back.png')]);
-    expect(readFileSync(join(pub, 'models', 'haro-blue.glb'), 'utf8')).toBe('small');
-    expect(list(pub)[0]).toMatchObject({ id: 'haro-blue', heightMeters: 18, tags: ['a', 'b'], model: '/models/haro-blue.glb' });
+    expect(readFileSync(join(pub, 'models', 'test-model.glb'), 'utf8')).toBe('small');
+    expect(list(pub)[0]).toMatchObject({ id: 'test-model', heightMeters: 18, tags: ['a', 'b'], model: '/models/test-model.glb' });
   });
 
   it.each([
@@ -59,10 +67,10 @@ describe('runCli', () => {
 
   it('stops on a duplicate id before spending credits, force overrides', async () => {
     const { pub, generator, deps } = setup();
-    await runCli(['front.png', '--title', 'Haro'], deps);
-    expect(await runCli(['front.png', '--title', 'Haro'], deps)).not.toBe(0);
+    await runCli(['front.png', '--title', 'Sample'], deps);
+    expect(await runCli(['front.png', '--title', 'Sample'], deps)).not.toBe(0);
     expect(generator.generate).toHaveBeenCalledTimes(1);
-    expect(await runCli(['front.png', '--title', 'Haro', '--force'], deps)).toBe(0);
+    expect(await runCli(['front.png', '--title', 'Sample', '--force'], deps)).toBe(0);
     expect(list(pub)).toHaveLength(1);
   });
 

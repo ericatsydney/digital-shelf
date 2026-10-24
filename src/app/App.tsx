@@ -90,12 +90,9 @@ export function App() {
         />
         <div className="hero-display__content">
           <span className="eyebrow">TACTICAL SHOWCASE</span>
-          <h1>Hero display</h1>
+          <h1>{selectedUnit ? selectedUnit.title : 'Hero display'}</h1>
           {selectedUnit ? (
-            <>
-              <p className="hero-display__unit">{selectedUnit.title}</p>
-              {state.unitStatus === 'error' && <p role="alert">Model unavailable</p>}
-            </>
+            state.unitStatus === 'error' && <p role="alert">Model unavailable</p>
           ) : (
             <p>Select a unit from the roster to view it.</p>
           )}

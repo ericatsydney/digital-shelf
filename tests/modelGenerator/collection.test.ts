@@ -15,19 +15,19 @@ import {
 const publicDir = () => {
   const root = mkdtempSync(join(tmpdir(), 'pub-'));
   mkdirSync(join(root, 'models'));
-  writeFileSync(join(root, 'collection.json'), JSON.stringify([{ id: 'haro-green', title: 'Haro', category: 'Figure', model: '/models/haro-green.glb' }]));
+  writeFileSync(join(root, 'collection.json'), JSON.stringify([{ id: 'sample-one', title: 'Sample', category: 'Figure', model: '/models/sample-one.glb' }]));
   return root;
 };
 
 describe('slugify / buildRecord', () => {
   it('slugifies titles', () => {
-    expect(slugify('  Haro Blue!! v2 ')).toBe('haro-blue-v2');
+    expect(slugify('  Test Model!! v2 ')).toBe('test-model-v2');
     expect(() => slugify('!!!')).toThrow(CollectionError);
   });
 
   it('builds a valid record with defaults', () => {
-    const record = buildRecord({ title: 'Haro Blue', heightMeters: 18, tags: ['a'] });
-    expect(record).toMatchObject({ id: 'haro-blue', category: 'Figure', model: '/models/haro-blue.glb', heightMeters: 18, tags: ['a'] });
+    const record = buildRecord({ title: 'Test Model', heightMeters: 18, tags: ['a'] });
+    expect(record).toMatchObject({ id: 'test-model', category: 'Figure', model: '/models/test-model.glb', heightMeters: 18, tags: ['a'] });
     expect(validateCollectionRecord(record)).not.toBeNull();
   });
 
@@ -41,16 +41,16 @@ describe('installModel', () => {
     const root = publicDir();
     const src = join(mkdtempSync(join(tmpdir(), 'src-')), 'm.glb');
     writeFileSync(src, 'glb');
-    const record = buildRecord({ title: 'Haro Blue' });
+    const record = buildRecord({ title: 'Test Model' });
     installModel(root, record, src, false);
-    expect(readFileSync(join(root, 'models', 'haro-blue.glb'), 'utf8')).toBe('glb');
+    expect(readFileSync(join(root, 'models', 'test-model.glb'), 'utf8')).toBe('glb');
     const list = JSON.parse(readFileSync(join(root, 'collection.json'), 'utf8'));
-    expect(list.map((r: { id: string }) => r.id)).toEqual(['haro-green', 'haro-blue']);
+    expect(list.map((r: { id: string }) => r.id)).toEqual(['sample-one', 'test-model']);
   });
 
   it('rejects duplicates unless forced, force replaces the entry', () => {
     const root = publicDir();
-    const record = buildRecord({ title: 'Haro Green' });
+    const record = buildRecord({ title: 'Sample One' });
     expect(() => assertNoDuplicate(root, record, false)).toThrow(/already exists/);
     expect(() => assertNoDuplicate(root, record, true)).not.toThrow();
     const src = join(mkdtempSync(join(tmpdir(), 'src-')), 'm.glb');
@@ -58,7 +58,7 @@ describe('installModel', () => {
     installModel(root, record, src, true);
     const list = JSON.parse(readFileSync(join(root, 'collection.json'), 'utf8'));
     expect(list).toHaveLength(1);
-    expect(list[0].title).toBe('Haro Green');
+    expect(list[0].title).toBe('Sample One');
   });
 
   it('leaves everything untouched if collection.json is unreadable', () => {

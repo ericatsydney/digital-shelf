@@ -40,7 +40,7 @@ Run the browser smoke tests against the local app:
 npx playwright test
 ```
 
-The smoke tests start Vite on `http://127.0.0.1:4173`, use the real local collection and `public/models/haro-green.glb`, and cover collection rendering, Haro selection, absence of deployment controls, stage switching, hero presence, PNG capture, and the narrow mobile layout. If Playwright reports that Chromium is unavailable, install the browser separately only when you explicitly choose to do so.
+The smoke tests start Vite on `http://127.0.0.1:4173`, use the real local collection and `public/models/light-guncannon.glb`, and cover collection rendering, Haro selection, absence of deployment controls, stage switching, hero presence, PNG capture, and the narrow mobile layout. If Playwright reports that Chromium is unavailable, install the browser separately only when you explicitly choose to do so.
 
 ## Production build and preview
 
@@ -56,11 +56,11 @@ The output is written to `dist/`. Preview that exact artifact locally:
 npm run preview
 ```
 
-The production preview should serve `/collection.json`, `/stages.json`, and `/models/haro-green.glb` from the same origin.
+The production preview should serve `/collection.json`, `/stages.json`, and `/models/light-guncannon.glb` from the same origin.
 
 ## Generate a model from images (Tripo)
 
-Turns 1 image, or 2-4 images of the same object (front, left, back, right order; filenames containing `front`/`back`/`left`/`right` are honoured), into one untextured GLB and registers it in `public/collection.json`.
+Turns 1 image, or 2-4 images of the same object (front, left, back, right order; filenames containing `front`/`back`/`left`/`right` are honoured), into one GLB (untextured unless `--texture` is given) and registers it in `public/collection.json`.
 
 One-time setup:
 
@@ -70,10 +70,10 @@ One-time setup:
 Run:
 
 ```powershell
-npm run model:generate -- front.png back.png --title "Haro Blue" --height 18
+npm run model:generate -- front.png back.png --title "Test Model" --height 18
 ```
 
-Options: `--id`, `--category` (default `Figure`), `--description`, `--tags a,b`, `--height <meters>`, `--force` (overwrite an existing id). The command stops before spending credits if the id already exists. Texture generation is off for now.
+Options: `--id`, `--category` (default `Figure`), `--description`, `--tags a,b`, `--height <meters>`, `--texture` (generate colour textures; larger files and more credits), `--force` (overwrite an existing id). The command stops before spending credits if the id already exists.
 
 After generating, the model is Meshopt-compressed automatically (the app decodes it locally, with no extra request) and must come out under 25 MiB, the Cloudflare per-file limit; otherwise nothing is installed and the raw GLB is kept in a temp folder whose path is printed.
 

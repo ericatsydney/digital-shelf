@@ -4,12 +4,12 @@ import { App } from '../src/app/App';
 
 const collection = [
   {
-    id: 'haro-green',
-    title: 'Haro Green',
+    id: 'light-guncannon',
+    title: 'Light Guncannon',
     category: 'Support Unit',
     description: 'A compact companion unit.',
     tags: ['mascot', 'support'],
-    model: '/models/haro-green.glb',
+    model: '/models/light-guncannon.glb',
   },
 ];
 
@@ -62,7 +62,7 @@ describe('command UI', () => {
     mockFetch(collection);
     render(<App />);
 
-    expect(await screen.findByRole('button', { name: /Haro Green/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Light Guncannon/i })).toBeInTheDocument();
     expect(screen.getByText('Hero display')).toBeInTheDocument();
     expect(screen.getByText('Support Unit')).toBeInTheDocument();
     expect(screen.getByText('mascot')).toBeInTheDocument();
@@ -70,8 +70,10 @@ describe('command UI', () => {
     expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
     expect(screen.getByText('Select a unit from the roster to view it.')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Haro Green/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Light Guncannon/i }));
     expect(screen.getByText('Loading unit…')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Light Guncannon');
+    expect(screen.queryByText('Hero display')).not.toBeInTheDocument();
 
     expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
     expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
@@ -81,15 +83,15 @@ describe('command UI', () => {
   });
 
   it('replaces the selected model while retaining the active stage', async () => {
-    mockFetch([...collection, { ...collection[0], id: 'haro-blue', title: 'Haro Blue', model: '/models/haro-blue.glb' }]);
+    mockFetch([...collection, { ...collection[0], id: 'sample-two', title: 'Sample Two', model: '/models/sample-two.glb' }]);
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Haro Green/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Light Guncannon/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
-    fireEvent.click(screen.getByRole('button', { name: /Haro Blue/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Sample Two/i }));
 
-    expect(screen.getByRole('region', { name: 'Hero display' })).toHaveTextContent('Haro Blue');
-    expect(screen.getByRole('region', { name: 'Hero display' })).not.toHaveTextContent('Haro Green');
+    expect(screen.getByRole('region', { name: 'Hero display' })).toHaveTextContent('Sample Two');
+    expect(screen.getByRole('region', { name: 'Hero display' })).not.toHaveTextContent('Light Guncannon');
     expect(screen.getByRole('button', { name: 'Space stage' })).toHaveAttribute('aria-pressed', 'true');
   });
 

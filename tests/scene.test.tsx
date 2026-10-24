@@ -27,10 +27,10 @@ vi.mock('@react-three/drei', () => ({
 }));
 
 const unit: CollectionRecord = {
-  id: 'haro-green',
-  title: 'Haro Green',
+  id: 'light-guncannon',
+  title: 'Light Guncannon',
   category: 'Support Unit',
-  model: '/models/haro-green.glb',
+  model: '/models/light-guncannon.glb',
   display: { scale: 1.25 },
 };
 

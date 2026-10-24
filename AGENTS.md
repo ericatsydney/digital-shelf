@@ -66,7 +66,7 @@ Use the Playwright MCP for a user-perspective verification against the local app
 - Exercise the requested user flow through the visible UI.
 - Confirm the expected rendered result and check for browser console errors.
 
-For the Digital Shelf 3D model flow, click the Haro Green button and confirm that the visible 3D canvas renders the model successfully.
+For the Digital Shelf 3D model flow, click the Light Guncannon button and confirm that the visible 3D canvas renders the model successfully.
 
 Do not proceed to code review if any command fails.
 
@@ -98,7 +98,7 @@ Start Vite as the target for Playwright, then ask the Playwright MCP to:
 
 - Open the local verification URL.
 - Exercise the requested user flow through the visible UI.
-- Capture the final rendered screen, including the Haro Green 3D model state when applicable.
+- Capture the final rendered screen, including the Light Guncannon 3D model state when applicable.
 - Check for browser console errors.
 - Return the screen capture and verification result in the Codex chat so it can be reviewed here or remotely on mobile.
 

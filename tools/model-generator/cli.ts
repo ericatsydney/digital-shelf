@@ -20,14 +20,14 @@ export type CliDeps = {
   publicDir: string;
   env: NodeJS.ProcessEnv;
   log: (message: string) => void;
-  createGenerator: (apiKey: string) => ModelGenerator;
+  createGenerator: (apiKey: string, options: { texture: boolean }) => ModelGenerator;
   compress: (inputPath: string, outputPath: string) => Promise<void>;
 };
 
 class UsageError extends Error {}
 
 const USAGE =
-  'Usage: npm run model:generate -- <image> [<image>...] --title "..." [--id --category --description --tags a,b --height <m> --force]';
+  'Usage: npm run model:generate -- <image> [<image>...] --title "..." [--id --category --description --tags a,b --height <m> --texture --force]';
 
 function validateImages(paths: string[], cwd: string): string[] {
   if (paths.length === 0) throw new UsageError(`Provide at least one image.\n${USAGE}`);
@@ -58,6 +58,7 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
         description: { type: 'string' },
         tags: { type: 'string' },
         height: { type: 'string' },
+        texture: { type: 'boolean', default: false },
         force: { type: 'boolean', default: false },
       },
     });
@@ -83,7 +84,7 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
 
     tempDir = mkdtempSync(join(tmpdir(), 'tripo-'));
     deps.log(`Generating "${record.title}" from ${images.length} image(s)...`);
-    const result = await deps.createGenerator(apiKey).generate(images, tempDir);
+    const result = await deps.createGenerator(apiKey, { texture: values.texture }).generate(images, tempDir);
 
     // Credits are spent by now, so keep the raw GLB around if anything below fails.
     keepTempDir = true;
@@ -121,7 +122,7 @@ if (isMain) {
     publicDir: join(cwd, 'public'),
     env: process.env,
     log: (message) => console.log(message),
-    createGenerator: (apiKey) => createTripoCliGenerator({ apiKey }),
+    createGenerator: (apiKey, options) => createTripoCliGenerator({ apiKey, texture: options.texture }),
     compress: compressGlb,
   }).then((code) => process.exit(code));
 }

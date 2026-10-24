@@ -5,19 +5,19 @@ test.describe('tactical showcase', () => {
 
   test('renders the local collection and shows one hero without deployment controls', async ({ page }) => {
     const modelResponse = page.waitForResponse(
-      (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
+      (response) => response.url().endsWith('/models/light-guncannon.glb') && response.ok(),
     );
 
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: 'Hero display' })).toBeVisible();
     await expect(page.getByText('2 units')).toBeVisible();
-    await expect(page.getByRole('button', { name: /Haro Green/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Light Guncannon/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
 
-    await page.getByRole('button', { name: /Haro Green/ }).click();
-    await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Haro Green', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
+    await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Light Guncannon', { exact: true })).toBeVisible();
     await expect(page.locator('.hero-canvas')).toBeVisible();
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await modelResponse;
@@ -26,17 +26,17 @@ test.describe('tactical showcase', () => {
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
   });
 
-  test('keeps the page mounted when Haro finishes loading', async ({ page }) => {
+  test('keeps the page mounted when Light Guncannon finishes loading', async ({ page }) => {
     const pageErrors: string[] = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
     await page.goto('/');
-    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
     await expect(page.locator('.hero-canvas')).toBeVisible();
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await page.waitForTimeout(2_000);
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
-    await expect.poll(() => page.locator('body').innerText()).toContain('Haro Green');
+    await expect.poll(() => page.locator('body').innerText()).toContain('Light Guncannon');
 
     expect(pageErrors).toEqual([]);
   });
@@ -48,7 +48,7 @@ test.describe('tactical showcase', () => {
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto('/');
     await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', /^data:image\/svg\+xml/);
-    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
 
     const forestStage = page.getByRole('button', { name: 'Forest stage' });
     await forestStage.click();
@@ -95,11 +95,11 @@ test.describe('tactical showcase', () => {
     test.setTimeout(60_000);
 
     await page.goto('/');
-    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
 
     const heroCanvas = page.locator('.hero-canvas');
     const canvas = heroCanvas.locator('canvas');
-    const modelLabel = page.getByRole('region', { name: 'Hero display' }).getByText('Haro Green', { exact: true });
+    const modelLabel = page.getByRole('region', { name: 'Hero display' }).getByText('Light Guncannon', { exact: true });
     const captureButton = page.getByRole('button', { name: 'Capture PNG' });
 
     await expect(heroCanvas).toHaveAttribute('data-backdrop-variant', 'hangar');
@@ -141,11 +141,11 @@ test.describe('tactical showcase', () => {
 
   test('changes stage without freezing the active 3D scene', async ({ page }) => {
     const modelResponse = page.waitForResponse(
-      (response) => response.url().endsWith('/models/haro-green.glb') && response.ok(),
+      (response) => response.url().endsWith('/models/light-guncannon.glb') && response.ok(),
     );
 
     await page.goto('/');
-    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
     await modelResponse;
     await page.waitForTimeout(1_000);
 
@@ -163,7 +163,7 @@ test.describe('tactical showcase', () => {
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
 
-    await page.getByRole('button', { name: /Haro Green/ }).click();
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
 
     const hero = page.locator('.hero-display');
     const commandSheet = page.getByRole('region', { name: 'Tactical command sheet' });

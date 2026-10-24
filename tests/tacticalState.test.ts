@@ -57,7 +57,7 @@ describe('tactical state reducer', () => {
   it('accepts ready only for the current unit load request', () => {
     const loadingState = tacticalReducer(initialTacticalState, {
       type: 'select-unit',
-      unitId: 'haro-green',
+      unitId: 'light-guncannon',
     });
 
     expect(
@@ -68,7 +68,7 @@ describe('tactical state reducer', () => {
   it('ignores stale ready and error actions', () => {
     const loadingState = tacticalReducer(initialTacticalState, {
       type: 'select-unit',
-      unitId: 'haro-green',
+      unitId: 'light-guncannon',
     });
     const newestState = tacticalReducer(loadingState, {
       type: 'select-unit',
