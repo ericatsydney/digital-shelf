@@ -2,6 +2,7 @@ import type { StageRecord } from '../app/types';
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Fog } from 'three';
+import { SkyDome } from './SkyDome';
 
 type StageSceneProps = {
   stage: StageRecord;
@@ -18,6 +19,7 @@ export function StageScene({ stage }: StageSceneProps) {
   return (
     <>
       <color attach="background" args={[stage.background]} />
+      {isForest && <SkyDome fallbackColor={stage.background} />}
       <ambientLight intensity={stage.ambientIntensity} />
       <directionalLight position={[4, 8, 5]} intensity={stage.directionalIntensity} />
       {!isForest && (

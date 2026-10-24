@@ -38,7 +38,7 @@ const ruinedCityCamera: HeroCameraDefaults = {
   target: [0, 5, 0],
 };
 const hangarCamera: HeroCameraDefaults = { position: [8, 10, 34], target: [0, 6, 0] };
-const forestCamera: HeroCameraDefaults = { position: [-8, 10, 34], target: [0, 6, 0] };
+const forestCamera: HeroCameraDefaults = { position: [-8, 3, 34], target: [0, 8, 0] };
 
 export function getCameraFit(
   bounds: Box3,

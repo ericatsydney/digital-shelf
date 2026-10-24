@@ -125,7 +125,7 @@ describe('hero scene', () => {
 
     it('frames the maintenance bay and forest clearing from distinct fitted directions', () => {
       expect(getHeroCameraDefaults(stage)).toEqual({ position: [8, 10, 34], target: [0, 6, 0] });
-      expect(getHeroCameraDefaults(forestStage)).toEqual({ position: [-8, 10, 34], target: [0, 6, 0] });
+      expect(getHeroCameraDefaults(forestStage)).toEqual({ position: [-8, 3, 34], target: [0, 8, 0] });
       const camera = { position: [1, 2, 3] as [number, number, number], target: [4, 5, 6] as [number, number, number] };
       expect(getHeroCameraDefaults(stage, camera)).toEqual(camera);
       expect(getHeroCameraDefaults(forestStage, camera)).toEqual(camera);
@@ -150,6 +150,13 @@ describe('hero scene', () => {
     expect(sceneState.scene.fog).not.toBeNull();
     unmount();
     expect(sceneState.scene.fog).toBeNull();
+  });
+
+  it('renders the painted sky dome for the Forest stage only, even without a canvas context', () => {
+    const { container, rerender } = render(<StageScene stage={forestStage} />);
+    expect(container.querySelector('[data-testid="sky-dome"]')).not.toBeNull();
+    rerender(<StageScene stage={stage} />);
+    expect(container.querySelector('[data-testid="sky-dome"]')).toBeNull();
   });
 
   describe('model placement', () => {

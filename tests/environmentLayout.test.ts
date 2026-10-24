@@ -12,6 +12,13 @@ describe('environment layouts', () => {
     expect(Math.min(...layout.trees.map(tree => tree.position[2]))).toBeLessThan(-45);
   });
 
+  it('gives forest trees round or flat-topped canopies in bright greens', () => {
+    const { trees } = getForestLayout();
+    expect(new Set(trees.map(tree => tree.canopy))).toEqual(new Set(['round', 'flat']));
+    expect(trees.every(tree => /^#[0-9a-f]{6}$/i.test(tree.color))).toBe(true);
+    expect(trees.every(tree => tree.color !== '#294936' && tree.color !== '#203e32')).toBe(true);
+  });
+
   it('surrounds the 18 metre model with a spacious, open-front maintenance bay', () => {
     const layout = getHangarLayout();
     expect(layout.width).toBeGreaterThan(48);

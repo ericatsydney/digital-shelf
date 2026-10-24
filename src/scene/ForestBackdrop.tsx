@@ -7,12 +7,13 @@ function Tree({ tree }: { tree: ForestTree }) {
         <cylinderGeometry args={[0.35, 0.65, tree.height * 0.72, 7]} />
         <meshStandardMaterial color="#574e3b" roughness={1} />
       </mesh>
-      {[0.48, 0.66, 0.81].map((level, i) => (
-        <mesh key={level} position={[0, tree.height * level, 0]}>
-          <coneGeometry args={[tree.radius * (1 - i * 0.19), tree.height * 0.48, 7]} />
-          <meshStandardMaterial color={tree.color} roughness={1} flatShading />
-        </mesh>
-      ))}
+      <mesh
+        position={[0, tree.height * 0.78, 0]}
+        scale={tree.canopy === 'flat' ? [tree.radius * 1.5, tree.radius * 0.5, tree.radius * 1.5] : [tree.radius, tree.radius * 0.85, tree.radius]}
+      >
+        <icosahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial color={tree.color} roughness={1} flatShading />
+      </mesh>
     </group>
   );
 }
@@ -23,17 +24,17 @@ export function ForestBackdrop() {
     <group>
       <mesh position={[0, forest.floorY - 0.12, -10]}>
         <boxGeometry args={[160, 0.24, 180]} />
-        <meshStandardMaterial color="#344934" roughness={1} />
+        <meshStandardMaterial color="#5d8f3e" roughness={1} />
       </mesh>
       <mesh position={[0, forest.floorY + 0.025, 0]}>
         <cylinderGeometry args={[13, 13, 0.04, 32]} />
-        <meshStandardMaterial color="#657054" roughness={1} />
+        <meshStandardMaterial color="#9a9b63" roughness={1} />
       </mesh>
       <mesh position={[0, forest.floorY + 0.01, 16]} rotation={[0, -0.1, 0]}>
         <boxGeometry args={[7, 0.025, 72]} />
-        <meshStandardMaterial color="#77725b" roughness={1} />
+        <meshStandardMaterial color="#b3a574" roughness={1} />
       </mesh>
-      {forest.trees.map((tree, i) => (
+      {[...forest.trees, ...forest.horizon].map((tree, i) => (
         <Tree key={i} tree={tree} />
       ))}
       {forest.rocks.map((rock, i) => (

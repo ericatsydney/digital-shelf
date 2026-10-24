@@ -54,7 +54,7 @@ test.describe('tactical showcase', () => {
     await forestStage.click();
 
     await expect(forestStage).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('.hero-canvas')).toHaveCSS('background-color', 'rgb(21, 37, 31)');
+    await expect(page.locator('.hero-canvas')).toHaveCSS('background-color', 'rgb(120, 188, 216)');
 
     const captureButton = page.getByRole('button', { name: 'Capture PNG' });
     await expect(captureButton).toBeVisible();

@@ -23,8 +23,8 @@ describe('stage backdrop validation', () => {
     expect(records.every((record) => record !== null)).toBe(true);
     expect(records.map((record) => record?.id)).toEqual(['hangar', 'forest', 'ruined-city']);
     expect(records[1]).toMatchObject({
-      name: 'Forest', background: '#15251f', gridColor: '#314b36',
-      accentColor: '#a5c880', ambientIntensity: 0.85, directionalIntensity: 1.25,
+      name: 'Forest', background: '#78bcd8', gridColor: '#314b36',
+      accentColor: '#a5c880', ambientIntensity: 1, directionalIntensity: 1.7,
       backdrop: { variant: 'forest', particleCount: 0, motion: 0 },
     });
   });
