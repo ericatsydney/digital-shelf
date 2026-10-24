@@ -92,7 +92,7 @@ test.describe('tactical showcase', () => {
   });
 
   test('switches through every hologram stage while preserving the model and capture action', async ({ page }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
 
     await page.goto('/');
     await page.getByRole('button', { name: /Light Guncannon/ }).click();

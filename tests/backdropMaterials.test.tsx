@@ -63,37 +63,35 @@ describe('shaded stage surfaces', () => {
     expectRoughSurface(materials(hangar, 'boxGeometry', [2.2, 0.03, 0.32], '#d1ae45'), 24);
   });
 
-  it('shades city roads, sidewalks, divider, curbs, and the pad base', () => {
-    expectRoughSurface(materials(city, 'boxGeometry', [19.8, 0.08, 60], '#17181d'), 1);
-    expectRoughSurface(materials(city, 'boxGeometry', [2.4, 0.16, 60], '#4b3b3b'), 2);
-    expectRoughSurface(materials(city, 'boxGeometry', [1, 0.04, 60], '#8e7659'), 1);
-    expectRoughSurface(materials(city, 'boxGeometry', [0.2, 0.22, 60], accentColor), 2);
-    const pad = materials(city, 'cylinderGeometry', [1.55, 1.55, 0.035, 32], '#2b2327');
-    expectRoughSurface(pad, 1);
-    expect(pad[0].props).toMatchObject({ transparent: true, opacity: 0.95 });
-  });
-
-  it('shades every city building body and roof cap', () => {
-    for (const building of getRuinedCityBuildings()) {
-      expectRoughSurface(materials(city, 'boxGeometry', building.size, building.color), 1);
-      const [width, , depth] = building.size;
-      const roof = materials(city, 'boxGeometry', [width + 0.12, 0.12, depth + 0.12], accentColor);
-      expectRoughSurface(roof, 1);
-      expect(roof[0].props).toMatchObject({ transparent: true, opacity: 0.18 });
-    }
-  });
-
-  it('keeps windows, lane indicators, scan rings, and Hangar light strips luminous', () => {
-    const windows = materials(city, 'boxGeometry', undefined, '#ffc777');
-    expect(windows).toHaveLength(24);
-    const laneIndicators = materials(city, 'boxGeometry', [0.08, 0.02, 2.4], accentColor);
-    expect(laneIndicators).toHaveLength(48);
-    const rings = materials(city, 'torusGeometry', undefined, accentColor);
-    expect(rings).toHaveLength(2);
+  it('keeps Hangar light strips luminous', () => {
     const hangarLights = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', [0.14, 12, 0.4], accentColor);
     expect(hangarLights.length).toBeGreaterThan(0);
-    for (const material of [...windows, ...laneIndicators, ...rings, ...hangarLights]) {
-      expect(material.type).toBe('meshBasicMaterial');
+    for (const material of hangarLights) expect(material.type).toBe('meshBasicMaterial');
+  });
+
+  it('builds a daylight street with only rough, non-metal solid surfaces', () => {
+    const all = elements(city);
+    const solids = all.filter((element) => element.type === 'meshStandardMaterial');
+    expect(solids.length).toBeGreaterThan(20);
+    for (const material of solids) {
+      expect(material.props.roughness).toBeGreaterThanOrEqual(0.85);
+      expect(material.props.metalness ?? 0).toBe(0);
     }
+  });
+
+  it('draws every building body in its weathered stone colour and drops the sci-fi props', () => {
+    for (const building of getRuinedCityBuildings()) {
+      expectRoughSurface(materials(city, 'boxGeometry', building.size, building.color), 1);
+    }
+    const all = elements(city);
+    expect(all.filter((element) => element.type === 'torusGeometry')).toHaveLength(0);
+    expect(materials(city, 'cylinderGeometry', [1.55, 1.55, 0.035, 32])).toHaveLength(0);
+    expect(all.filter((element) => element.type === 'meshBasicMaterial' && element.props.color === '#ffc777')).toHaveLength(0);
+  });
+
+  it('batches repeated facade parts into instanced meshes to bound draw calls', () => {
+    const all = elements(city);
+    expect(all.filter((element) => element.type === 'instancedMesh').length).toBeGreaterThan(3);
+    expect(all.filter((element) => element.type === 'mesh').length).toBeLessThan(120);
   });
 });

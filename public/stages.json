@@ -30,11 +30,11 @@
   {
     "id": "ruined-city",
     "name": "Ruined City",
-    "background": "#1b1515",
+    "background": "#8d9ca6",
     "gridColor": "#6c4037",
     "accentColor": "#ff9b61",
     "ambientIntensity": 0.7,
-    "directionalIntensity": 1,
+    "directionalIntensity": 1.2,
     "backdrop": {
       "variant": "ruined-city",
       "particleCount": 12,

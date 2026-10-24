@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { BackSide } from 'three';
-import { createSkyTexture } from './skyTexture';
+import { createSkyTexture, type SkyVariant } from './skyTexture';
 
-export function SkyDome({ fallbackColor }: { fallbackColor: string }) {
-  const texture = useMemo(() => createSkyTexture(), []);
+export function SkyDome({ fallbackColor, variant = 'forest' }: { fallbackColor: string; variant?: SkyVariant }) {
+  const texture = useMemo(() => createSkyTexture(undefined, variant), [variant]);
   useEffect(() => () => texture?.dispose(), [texture]);
 
   return (

@@ -106,12 +106,12 @@ describe('hero scene', () => {
       const direction = new Vector3(...camera.target).sub(new Vector3(...camera.position)).normalize();
 
       expect(camera).toEqual({
-        position: [10, 12, 34],
-        target: [0, 5, 0],
+        position: [3, 3, 34],
+        target: [0, 9, 0],
       });
       expect(Math.abs(direction.z)).toBeGreaterThan(Math.abs(direction.x) * 2);
-      expect(direction.y).toBeLessThan(0);
-      expect(camera.position[1]).toBeGreaterThan(camera.target[1]);
+      expect(direction.y).toBeGreaterThan(0);
+      expect(camera.position[1]).toBeLessThan(camera.target[1]);
     });
 
     it('preserves explicit record framing for the city stage', () => {
@@ -152,11 +152,15 @@ describe('hero scene', () => {
     expect(sceneState.scene.fog).toBeNull();
   });
 
-  it('renders the painted sky dome for the Forest stage only, even without a canvas context', () => {
+  it('renders the painted sky dome for the daylight stages only, even without a canvas context', () => {
     const { container, rerender } = render(<StageScene stage={forestStage} />);
     expect(container.querySelector('[data-testid="sky-dome"]')).not.toBeNull();
+    rerender(<StageScene stage={ruinedCityStage} />);
+    expect(container.querySelector('[data-testid="sky-dome"]')).not.toBeNull();
+    expect(container.querySelector('gridHelper')).toBeNull();
     rerender(<StageScene stage={stage} />);
     expect(container.querySelector('[data-testid="sky-dome"]')).toBeNull();
+    expect(container.querySelector('gridHelper')).not.toBeNull();
   });
 
   describe('model placement', () => {

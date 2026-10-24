@@ -34,8 +34,8 @@ const defaultCamera: HeroCameraDefaults = {
 };
 
 const ruinedCityCamera: HeroCameraDefaults = {
-  position: [10, 12, 34],
-  target: [0, 5, 0],
+  position: [3, 3, 34],
+  target: [0, 9, 0],
 };
 const hangarCamera: HeroCameraDefaults = { position: [8, 10, 34], target: [0, 6, 0] };
 const forestCamera: HeroCameraDefaults = { position: [-8, 3, 34], target: [0, 8, 0] };

@@ -16,18 +16,24 @@ export function getCloudStreaks(width: number, height: number): CloudStreak[] {
   });
 }
 
-/** Paints a teal-to-pale gradient with streaky cloud bands; null when no 2D context exists. */
-export function createSkyTexture(canvas: HTMLCanvasElement = document.createElement('canvas')): CanvasTexture | null {
+export type SkyVariant = 'forest' | 'ruined-city';
+
+/** Gradient stops from zenith to horizon. */
+export function getSkyPalette(variant: SkyVariant): [string, string, string, string] {
+  return variant === 'ruined-city'
+    ? ['#4a6f93', '#6f90aa', '#a3b5be', '#c9cfcf']
+    : ['#2a7fb8', '#5aaed0', '#a9d8e4', '#d8efe6'];
+}
+
+/** Paints a gradient with streaky cloud bands; null when no 2D context exists. */
+export function createSkyTexture(canvas: HTMLCanvasElement = document.createElement('canvas'), variant: SkyVariant = 'forest'): CanvasTexture | null {
   canvas.width = 1024;
   canvas.height = 512;
   const context = canvas.getContext('2d');
   if (!context) return null;
 
   const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#2a7fb8');
-  gradient.addColorStop(0.5, '#5aaed0');
-  gradient.addColorStop(0.78, '#a9d8e4');
-  gradient.addColorStop(1, '#d8efe6');
+  getSkyPalette(variant).forEach((color, index) => gradient.addColorStop([0, 0.5, 0.78, 1][index], color));
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
 

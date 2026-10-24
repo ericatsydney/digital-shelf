@@ -22,6 +22,9 @@ describe('stage backdrop validation', () => {
     const records = shippedStages.map(validateStageRecord);
     expect(records.every((record) => record !== null)).toBe(true);
     expect(records.map((record) => record?.id)).toEqual(['hangar', 'forest', 'ruined-city']);
+    expect(records[2]).toMatchObject({
+      name: 'Ruined City', background: '#8d9ca6', ambientIntensity: 0.7, directionalIntensity: 1.2,
+    });
     expect(records[1]).toMatchObject({
       name: 'Forest', background: '#78bcd8', gridColor: '#314b36',
       accentColor: '#a5c880', ambientIntensity: 1, directionalIntensity: 1.7,
@@ -54,8 +57,8 @@ describe('stage backdrop validation', () => {
 
   it('keeps the ruined-city stage and exposes a balanced deterministic building layout', () => {
     const stage = validateStageRecord({
-      id: 'ruined-city', name: 'Ruined City', background: '#1b1515', gridColor: '#6c4037',
-      accentColor: '#ff9b61', ambientIntensity: 0.7, directionalIntensity: 1,
+      id: 'ruined-city', name: 'Ruined City', background: '#8d9ca6', gridColor: '#6c4037',
+      accentColor: '#ff9b61', ambientIntensity: 0.7, directionalIntensity: 1.2,
       backdrop: { variant: 'ruined-city', particleCount: 12, motion: 0.12 },
     });
     const buildings = getRuinedCityBuildings();
@@ -65,6 +68,23 @@ describe('stage backdrop validation', () => {
     expect(buildings.filter((building) => building.side === -1)).toHaveLength(4);
     expect(buildings.filter((building) => building.side === 1)).toHaveLength(4);
     expect(new Set(buildings.map((building) => building.size[1])).size).toBeGreaterThan(1);
+  });
+
+  it('gives every ruined-city building weathered stone, windows, a roof style and shell damage', () => {
+    const buildings = getRuinedCityBuildings();
+    expect(buildings).toEqual(getRuinedCityBuildings());
+    expect(new Set(buildings.map((building) => building.roof))).toEqual(new Set(['pitched', 'flat', 'broken']));
+    expect(buildings.some((building) => building.cornerCut)).toBe(true);
+    expect(buildings.some((building) => building.balconies > 0)).toBe(true);
+    for (const building of buildings) {
+      expect(building.windowRows).toBeGreaterThanOrEqual(3);
+      expect(building.windowColumns).toBeGreaterThanOrEqual(3);
+      expect(building.shellHoles).toBeGreaterThanOrEqual(1);
+      const [red, green, blue] = [1, 3, 5].map((i) => parseInt(building.color.slice(i, i + 2), 16));
+      expect(red).toBeGreaterThanOrEqual(0x80);
+      expect(red).toBeLessThanOrEqual(0xa0);
+      expect(red >= green && green >= blue).toBe(true);
+    }
   });
 
   it('uses real-world proportions for the six-lane street canyon', () => {
