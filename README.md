@@ -75,6 +75,8 @@ npm run model:generate -- front.png back.png --title "Test Model" --height 18
 
 The app never measures a model at runtime: the command measures the raw GLB and stores `display.scale` (from `--height`) and `display.groundOffset` in the record, and each stage has a fixed camera tuned for a figure about 20 m tall (a much taller or shorter figure needs its own `camera` in the record).
 
+**Height convention:** a robot's nominal height (for example 18.5 m for Hyaku-Shiki) is its **head height**: floor to head top, excluding back or shoulder weapons, wings and antennas. `--height` however is the **whole-model** height the generated GLB is scaled to, so pass `nominal head height x (whole-model height / head height)`, estimated from the front photo and re-checked against the rendered model (Light Guncannon: 18 m head, `--height 20.6`; Hyaku-Shiki: 18.5 m head, `--height 19.7`, the back blades being the highest point).
+
 Options: `--id`, `--category` (default `Figure`), `--description`, `--tags a,b`, `--height <meters>`, `--texture` (generate colour textures; larger files and more credits), `--force` (overwrite an existing id). The command stops before spending credits if the id already exists.
 
 After generating, the model is Meshopt-compressed automatically (the app decodes it locally, with no extra request) and must come out under 25 MiB, the Cloudflare per-file limit; otherwise nothing is installed and the raw GLB is kept in a temp folder whose path is printed.
