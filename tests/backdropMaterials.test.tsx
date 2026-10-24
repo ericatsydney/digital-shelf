@@ -106,6 +106,14 @@ describe('shaded stage surfaces', () => {
     expect(elements(hangar).find((element) => element.type === 'group' && JSON.stringify(element.props.position) === '[0,1.25,0]')).toBeUndefined();
   });
 
+  it('fills the strip between the sidewalks and the buildings and grounds the whole street', () => {
+    const city = <StageBackdrop stage={{ accentColor }} config={{ variant: 'ruined-city', particleCount: 0, motion: 0 }} />;
+    expectRoughSurface(materials(city, 'boxGeometry', [220, 0.2, 200]), 1);
+    const fillers = materials(city, 'boxGeometry', [1.4, 0.16, 60]);
+    expect(fillers).toHaveLength(2);
+    for (const material of fillers) expect(material.type).toBe('meshStandardMaterial');
+  });
+
   it('keeps Hangar light strips luminous', () => {
     const hangarLights = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', [0.14, 12, 0.4], accentColor);
     expect(hangarLights.length).toBeGreaterThan(0);

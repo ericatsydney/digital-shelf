@@ -4,7 +4,8 @@ import { Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
 import { HeroModel, getRotationRadians } from '../src/scene/HeroModel';
-import { getCameraFloorY, getHeroCameraDefaults, getHeroControlsMode, getMaxPolarAngle } from '../src/scene/HeroCanvas';
+import { getHeroCameraDefaults, getHeroControlsMode, getMaxPolarAngle } from '../src/scene/HeroCanvas';
+import { getCameraLimits } from '../src/scene/cameraLimits';
 
 const { sceneState } = vi.hoisted(() => ({
   sceneState: {
@@ -80,11 +81,23 @@ describe('hero scene', () => {
     sceneState.camera.lookAt.mockClear();
   });
   describe('camera floor guard', () => {
-    it('only guards the stages that have a ground', () => {
-      expect(getCameraFloorY(forestStage)).toBe(0);
-      expect(getCameraFloorY(ruinedCityStage)).toBe(0);
-      expect(getCameraFloorY(stage)).toBeUndefined();
-      expect(getCameraFloorY(spaceStage)).toBeUndefined();
+    it('keeps every camera limit in one central settings table', () => {
+      expect(getCameraLimits(forestStage)).toMatchObject({ floorY: 0, minHeightAboveFloor: 1 });
+      expect(getCameraLimits(ruinedCityStage)).toMatchObject({ floorY: 0, minHeightAboveFloor: 1 });
+      expect(getCameraLimits(stage).floorY).toBeUndefined();
+      expect(getCameraLimits(spaceStage).floorY).toBeUndefined();
+    });
+
+    it('stops the camera zooming out past the edge of every stage', () => {
+      for (const target of [forestStage, ruinedCityStage, stage, spaceStage]) {
+        const limits = getCameraLimits(target);
+        expect(Number.isFinite(limits.maxDistance)).toBe(true);
+        const [x, y, z] = getHeroCameraDefaults(target).position;
+        const [tx, ty, tz] = getHeroCameraDefaults(target).target;
+        const defaultDistance = Math.hypot(x - tx, y - ty, z - tz);
+        expect(limits.maxDistance).toBeGreaterThan(defaultDistance);
+        expect(limits.maxDistance).toBeLessThan(defaultDistance * 1.6);
+      }
     });
 
     it('limits the orbit so the camera stays at least the minimum height above the floor', () => {

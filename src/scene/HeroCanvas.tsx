@@ -8,6 +8,7 @@ import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
 import { StageBackdrop } from './StageBackdrop';
 import { Turntable } from './Turntable';
+import { getCameraLimits } from './cameraLimits';
 import { CaptureButton } from '../components/CaptureButton';
 
 const canvasDpr: [number, number] = [1, 2];
@@ -51,13 +52,6 @@ export function getHeroCameraDefaults(
 export function getHeroControlsMode(stage: Pick<StageRecord, 'backdrop'>): 'turntable' | 'orbit' {
   return stage.backdrop.variant === 'hangar' ? 'turntable' : 'orbit';
 }
-
-/** Height of the ground on stages that have one (the robot's feet sit at y = 0); undefined elsewhere. */
-export function getCameraFloorY(stage: Pick<StageRecord, 'backdrop'>): number | undefined {
-  return stage.backdrop.variant === 'forest' || stage.backdrop.variant === 'ruined-city' ? 0 : undefined;
-}
-
-const minCameraHeightAboveFloor = 1;
 
 /** Largest orbit polar angle (from straight up) that keeps the camera at or above minY. */
 export function getMaxPolarAngle(targetY: number, distance: number, minY: number): number {
@@ -180,7 +174,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   }, []);
 
   const turntable = getHeroControlsMode(stage) === 'turntable';
-  const floorY = getCameraFloorY(stage);
+  const limits = getCameraLimits(stage);
   if (!unit) {
     return <div className="hero-canvas hero-canvas--empty" role="status">Select a unit from the roster</div>;
   }
@@ -214,9 +208,9 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
             {model}
           </PresentationControls>
         ) : model}
-        {floorY !== undefined && <CameraFloorGuard controlsRef={controlsRef} minY={floorY + minCameraHeightAboveFloor} />}
+        {limits.floorY !== undefined && <CameraFloorGuard controlsRef={controlsRef} minY={limits.floorY + limits.minHeightAboveFloor} />}
         <CameraRig position={cameraPosition} target={cameraTarget} cameraResetId={cameraResetId} controlsRef={controlsRef} />
-        <OrbitControls ref={controlsRef} target={cameraTarget} enablePan={!turntable} enableZoom enableRotate={!turntable} />
+        <OrbitControls ref={controlsRef} target={cameraTarget} enablePan={!turntable} enableZoom enableRotate={!turntable} maxDistance={limits.maxDistance} />
       </Canvas>
       {!loaded && !loadError && <LoadingFallback />}
       {loadError && <div className="hero-canvas__status" role="alert">Model unavailable</div>}

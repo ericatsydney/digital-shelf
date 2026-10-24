@@ -240,6 +240,16 @@ export function StreetCanyonBackdrop() {
         <boxGeometry args={[centerDividerWidth, 0.04, streetLength]} />
         <meshStandardMaterial color="#7a7060" roughness={1} />
       </mesh>
+      <mesh position={[0, -1.4, 0]}>
+        <boxGeometry args={[220, 0.2, 200]} />
+        <meshStandardMaterial color="#6a6155" roughness={1} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={`filler-${side}`} position={[side * (roadwayWidth / 2 + sidewalkWidth + 0.7), -1.17, 0]}>
+          <boxGeometry args={[1.4, 0.16, streetLength]} />
+          <meshStandardMaterial color="#a89a82" roughness={1} />
+        </mesh>
+      ))}
       <Instanced parts={cracks} shape="box" color="#2d2c2b" />
       <Instanced parts={debris} shape="box" color="#6a645a" />
       <Instanced parts={wrecks.bodies} shape="box" color="#6b3b2c" />
