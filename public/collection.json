@@ -6,7 +6,9 @@
     "model": "/models/hyaku-shiki.glb",
     "heightMeters": 18.5,
     "display": {
-      "rotationYDegrees": 90
+      "rotationYDegrees": 90,
+      "scale": 18.5,
+      "groundOffset": 0.5
     }
   },
   {
@@ -21,7 +23,9 @@
     ],
     "heightMeters": 20.6,
     "display": {
-      "rotationYDegrees": 90
+      "rotationYDegrees": 90,
+      "scale": 20.6,
+      "groundOffset": 0.5
     }
   }
 ]

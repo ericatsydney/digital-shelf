@@ -4,6 +4,7 @@ import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { compressGlb } from './compress';
+import { measureGlb, type GlbMeasurement } from './measure';
 import { CollectionError, assertNoDuplicate, buildRecord, installModel } from './collection';
 import { ConfigError, loadApiKey } from './config';
 import { GeneratorError, createTripoCliGenerator, type ModelGenerator } from './generator';
@@ -22,6 +23,7 @@ export type CliDeps = {
   log: (message: string) => void;
   createGenerator: (apiKey: string, options: { texture: boolean }) => ModelGenerator;
   compress: (inputPath: string, outputPath: string) => Promise<void>;
+  measure: (path: string) => Promise<GlbMeasurement>;
 };
 
 class UsageError extends Error {}
@@ -88,6 +90,17 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
 
     // Credits are spent by now, so keep the raw GLB around if anything below fails.
     keepTempDir = true;
+    let measurement: GlbMeasurement;
+    try {
+      measurement = await deps.measure(result.modelFile);
+    } catch (error) {
+      throw new GeneratorError(`Could not measure the model: ${(error as Error).message}. Raw GLB kept at ${result.modelFile}`);
+    }
+    // The app renders these stored values as they are; it never measures a model at runtime.
+    record.display = {
+      ...(heightMeters !== undefined ? { scale: heightMeters / measurement.height } : {}),
+      groundOffset: -measurement.minY,
+    };
     const compressed = join(tempDir, 'model.compressed.glb');
     deps.log('Compressing the model (Meshopt)...');
     try {
@@ -124,5 +137,6 @@ if (isMain) {
     log: (message) => console.log(message),
     createGenerator: (apiKey, options) => createTripoCliGenerator({ apiKey, texture: options.texture }),
     compress: compressGlb,
+    measure: measureGlb,
   }).then((code) => process.exit(code));
 }

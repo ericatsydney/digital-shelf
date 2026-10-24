@@ -49,6 +49,9 @@ export function validateCollectionRecord(value: unknown): CollectionRecord | nul
     if (display.scale !== undefined && (typeof display.scale !== 'number' || !Number.isFinite(display.scale) || display.scale <= 0)) {
       return null;
     }
+    if (display.groundOffset !== undefined && (typeof display.groundOffset !== 'number' || !Number.isFinite(display.groundOffset))) {
+      return null;
+    }
     if (display.rotationYDegrees !== undefined && (typeof display.rotationYDegrees !== 'number' || !Number.isFinite(display.rotationYDegrees))) {
       return null;
     }

@@ -13,7 +13,10 @@ export type CollectionRecord = {
   };
   display?: {
     stageId?: string;
+    /** Final model scale; the app never measures the model at runtime. */
     scale?: number;
+    /** Native-unit lift (added before scaling) so the feet sit on y = 0. */
+    groundOffset?: number;
     /** Clockwise (seen from above) turn applied to the model, in degrees. */
     rotationYDegrees?: number;
   };

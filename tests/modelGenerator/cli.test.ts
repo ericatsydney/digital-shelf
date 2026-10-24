@@ -24,7 +24,8 @@ function setup() {
   const compress = vi.fn(async (_input: string, output: string) => {
     writeFileSync(output, 'small');
   });
-  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: vi.fn((_apiKey: string, _options?: { texture: boolean }) => generator), compress };
+  const measure = vi.fn(async (_file: string) => ({ height: 1, minY: -0.5 }));
+  const deps = { cwd: root, publicDir: pub, env: { TRIPO_API_KEY: 'SECRET' }, log: (m: string) => out.push(m), createGenerator: vi.fn((_apiKey: string, _options?: { texture: boolean }) => generator), compress, measure };
   return { root, pub, out, generator, compress, deps };
 }
 
@@ -37,6 +38,25 @@ describe('runCli', () => {
     expect(deps.createGenerator).toHaveBeenLastCalledWith('SECRET', { texture: false });
     expect(await runCli(['front.png', '--title', 'Painted', '--texture'], deps)).toBe(0);
     expect(deps.createGenerator).toHaveBeenLastCalledWith('SECRET', { texture: true });
+  });
+
+  it('stores the measured scale and ground offset so the app never measures at runtime', async () => {
+    const { pub, deps } = setup();
+    deps.measure.mockResolvedValueOnce({ height: 2, minY: -1 });
+    expect(await runCli(['front.png', '--title', 'Tall', '--height', '20'], deps)).toBe(0);
+    expect(list(pub)[0].display).toEqual({ scale: 10, groundOffset: 1 });
+    expect(await runCli(['front.png', '--title', 'Plain'], deps)).toBe(0);
+    expect(list(pub)[1].display).toEqual({ groundOffset: 0.5 });
+  });
+
+  it('keeps the raw GLB and installs nothing when the model cannot be measured', async () => {
+    const { pub, out, deps } = setup();
+    deps.measure.mockRejectedValueOnce(new Error('no geometry'));
+    expect(await runCli(['front.png', '--title', 'X'], deps)).not.toBe(0);
+    expect(list(pub)).toEqual([]);
+    const text = out.join(' ');
+    expect(text).toMatch(/measure/i);
+    expect(text).toMatch(/Raw GLB kept at/);
   });
 
   it('turns several images into one model and one record', async () => {

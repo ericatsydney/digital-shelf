@@ -1,7 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PresentationControls } from '@react-three/drei';
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Box3, Sphere, Vector3 } from 'three';
 import { useThree } from '@react-three/fiber';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { CollectionRecord, StageRecord } from '../app/types';
@@ -34,43 +33,9 @@ const defaultCamera: HeroCameraDefaults = {
   target: [0, 0, 0],
 };
 
-const ruinedCityCamera: HeroCameraDefaults = {
-  position: [3, 3, 34],
-  target: [0, 9, 0],
-};
-const hangarCamera: HeroCameraDefaults = { position: [8, 10, 34], target: [0, 6, 0] };
-const forestCamera: HeroCameraDefaults = { position: [-8, 3, 34], target: [0, 8, 0] };
-
-export function getCameraFit(
-  bounds: Box3,
-  fallback: HeroCameraDefaults,
-  fov: number,
-  aspect = 1,
-): HeroCameraDefaults {
-  if (bounds.isEmpty() || !Number.isFinite(fov) || fov <= 0) return fallback;
-
-  const center = new Vector3();
-  const sphere = new Sphere();
-  bounds.getCenter(center);
-  bounds.getBoundingSphere(sphere);
-  if (!Number.isFinite(sphere.radius) || sphere.radius <= 0) return fallback;
-
-  const fallbackDirection = new Vector3(...fallback.position).sub(new Vector3(...fallback.target));
-  if (fallbackDirection.lengthSq() === 0) fallbackDirection.set(0, 0, 1);
-  fallbackDirection.normalize();
-
-  const halfVerticalFov = (fov * Math.PI) / 360;
-  const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
-  const halfHorizontalFov = Math.atan(Math.tan(halfVerticalFov) * safeAspect);
-  const halfFov = Math.min(halfVerticalFov, halfHorizontalFov);
-  const distance = (sphere.radius / Math.sin(halfFov)) * 1.35;
-  const position = center.clone().add(fallbackDirection.multiplyScalar(distance));
-
-  return {
-    position: [position.x, position.y, position.z],
-    target: [center.x, center.y, center.z],
-  };
-}
+const ruinedCityCamera: HeroCameraDefaults = { position: [4.3, 1.8, 48.3], target: [0, 10.3, 0] };
+const hangarCamera: HeroCameraDefaults = { position: [11.2, 15.9, 47.5], target: [0, 10.3, 0] };
+const forestCamera: HeroCameraDefaults = { position: [-11.1, 3.3, 47.3], target: [0, 10.3, 0] };
 
 export function getHeroCameraDefaults(
   stage: Pick<StageRecord, 'backdrop'>,
@@ -127,29 +92,24 @@ function LoadingFallback() {
   return <div className="hero-canvas__status" role="status">Loading unit…</div>;
 }
 
-function HeroCameraFit({ bounds, fallback, fov, cameraResetId, controlsRef }: {
-  bounds: Box3 | null;
-  fallback: HeroCameraDefaults;
-  fov: number;
+/** Places the camera at its fixed default; nothing depends on the model or its measured size. */
+function CameraRig({ position, target, cameraResetId, controlsRef }: {
+  position: CameraVector;
+  target: CameraVector;
   cameraResetId: number;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
 }) {
   const camera = useThree(({ camera }) => camera);
 
   useEffect(() => {
-    if (!bounds) return;
-
-    const aspect = 'aspect' in camera && typeof camera.aspect === 'number' ? camera.aspect : 1;
-    const fit = getCameraFit(bounds, fallback, fov, aspect);
-    camera.position.set(...fit.position);
-    camera.lookAt(...fit.target);
+    camera.position.set(...position);
+    camera.lookAt(...target);
     camera.updateProjectionMatrix();
-
     if (controlsRef.current) {
-      controlsRef.current.target.set(...fit.target);
+      controlsRef.current.target.set(...target);
       controlsRef.current.update();
     }
-  }, [bounds, camera, cameraResetId, controlsRef, fallback, fov]);
+  }, [camera, cameraResetId, controlsRef, position, target]);
 
   return null;
 }
@@ -158,14 +118,12 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const [modelBounds, setModelBounds] = useState<Box3 | null>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const currentRequestId = useRef(requestId);
   currentRequestId.current = requestId;
   useEffect(() => {
     setLoaded(false);
     setLoadError(false);
-    setModelBounds(null);
   }, [requestId, unit?.id]);
   const isCurrent = useCallback(() => currentRequestId.current === requestId, [requestId]);
   const handleReady = useCallback(() => {
@@ -180,9 +138,6 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       onError?.(requestId);
     }
   }, [isCurrent, onError, requestId]);
-  const handleBounds = useCallback((bounds: Box3) => {
-    setModelBounds(bounds.clone());
-  }, []);
 
   const { position: cameraPosition, target: cameraTarget } = useMemo(
     () => getHeroCameraDefaults(stage, unit?.camera),
@@ -201,7 +156,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   const model = (
     <HeroLoadBoundary key={requestId} requestId={requestId} onError={handleError}>
       <Suspense fallback={null}>
-        <HeroModel record={unit} onLoaded={handleReady} onBounds={handleBounds} />
+        <HeroModel record={unit} onLoaded={handleReady} />
       </Suspense>
     </HeroLoadBoundary>
   );
@@ -227,13 +182,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
             {model}
           </PresentationControls>
         ) : model}
-        <HeroCameraFit
-          bounds={modelBounds}
-          fallback={{ position: cameraPosition, target: cameraTarget }}
-          fov={camera.fov}
-          cameraResetId={cameraResetId}
-          controlsRef={controlsRef}
-        />
+        <CameraRig position={cameraPosition} target={cameraTarget} cameraResetId={cameraResetId} controlsRef={controlsRef} />
         <OrbitControls ref={controlsRef} target={cameraTarget} enablePan={!turntable} enableZoom enableRotate={!turntable} />
       </Canvas>
       {!loaded && !loadError && <LoadingFallback />}

@@ -1,22 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Box3, BoxGeometry, Group, Mesh, Scene, Vector3 } from 'three';
+import { Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
-import { getGroundOffsetY, getHeightAwareScale, getIntrinsicBounds, getRotationRadians } from '../src/scene/HeroModel';
-import { getCameraFit, getHeroCameraDefaults, getHeroControlsMode } from '../src/scene/HeroCanvas';
+import { HeroModel, getRotationRadians } from '../src/scene/HeroModel';
+import { getHeroCameraDefaults, getHeroControlsMode } from '../src/scene/HeroCanvas';
 
-const { sceneState } = vi.hoisted(() => ({ sceneState: { scene: null as Scene | null } }));
+const { sceneState } = vi.hoisted(() => ({
+  sceneState: {
+    scene: null as Scene | null,
+    camera: { position: { set: vi.fn() }, lookAt: vi.fn(), updateProjectionMatrix: vi.fn() },
+  },
+}));
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="r3f-canvas">{children}</div>,
   useThree: (selector: (state: unknown) => unknown) => selector({
     gl: { domElement: document.createElement('canvas') },
     scene: sceneState.scene,
-    camera: {
-      position: { set: vi.fn() },
-      lookAt: vi.fn(),
-      updateProjectionMatrix: vi.fn(),
-    },
+    camera: sceneState.camera,
   }),
 }));
 
@@ -72,43 +73,19 @@ const spaceStage: StageRecord = {
 const forestStage: StageRecord = { ...stage, id: 'forest', name: 'Forest', backdrop: { ...stage.backdrop, variant: 'forest' } };
 
 describe('hero scene', () => {
-  beforeEach(() => { sceneState.scene = new Scene(); });
-  describe('getCameraFit', () => {
-    it('returns a target at the bounds center and a distance that contains the model', () => {
-      const fit = getCameraFit(
-        new Box3(new Vector3(-1, -2, -1), new Vector3(1, 2, 1)),
-        { position: [4, 2.5, 6], target: [0, 0, 0] },
-        42,
-      );
-
-      expect(fit.target).toEqual([0, 0, 0]);
-      expect(fit.position[1]).toBeGreaterThan(0);
-      expect(fit.position[2]).toBeGreaterThan(7);
-    });
-
-    it('uses the narrower horizontal field of view for narrow canvases', () => {
-      const wideBounds = new Box3(new Vector3(-4, -1, -1), new Vector3(4, 1, 1));
-      const normalFit = getCameraFit(wideBounds, { position: [4, 2.5, 6], target: [0, 0, 0] }, 42, 1);
-      const narrowFit = getCameraFit(wideBounds, { position: [4, 2.5, 6], target: [0, 0, 0] }, 42, 0.5);
-
-      expect(narrowFit.position[2]).toBeGreaterThan(normalFit.position[2]);
-    });
-
-    it('falls back to the provided camera when bounds are invalid', () => {
-      const fallback = { position: [4, 2.5, 6] as [number, number, number], target: [0, 0, 0] as [number, number, number] };
-
-      expect(getCameraFit(new Box3(), fallback, 42)).toEqual(fallback);
-    });
+  beforeEach(() => {
+    sceneState.scene = new Scene();
+    sceneState.camera.position.set.mockClear();
+    sceneState.camera.lookAt.mockClear();
   });
-
   describe('getHeroCameraDefaults', () => {
     it('uses a street-facing city framing aligned with the roadway', () => {
       const camera = getHeroCameraDefaults(ruinedCityStage);
       const direction = new Vector3(...camera.target).sub(new Vector3(...camera.position)).normalize();
 
       expect(camera).toEqual({
-        position: [3, 3, 34],
-        target: [0, 9, 0],
+        position: [4.3, 1.8, 48.3],
+        target: [0, 10.3, 0],
       });
       expect(Math.abs(direction.z)).toBeGreaterThan(Math.abs(direction.x) * 2);
       expect(direction.y).toBeGreaterThan(0);
@@ -125,11 +102,25 @@ describe('hero scene', () => {
     });
 
     it('frames the maintenance bay and forest clearing from distinct fitted directions', () => {
-      expect(getHeroCameraDefaults(stage)).toEqual({ position: [8, 10, 34], target: [0, 6, 0] });
-      expect(getHeroCameraDefaults(forestStage)).toEqual({ position: [-8, 3, 34], target: [0, 8, 0] });
+      expect(getHeroCameraDefaults(stage)).toEqual({ position: [11.2, 15.9, 47.5], target: [0, 10.3, 0] });
+      expect(getHeroCameraDefaults(forestStage)).toEqual({ position: [-11.1, 3.3, 47.3], target: [0, 10.3, 0] });
       const camera = { position: [1, 2, 3] as [number, number, number], target: [4, 5, 6] as [number, number, number] };
       expect(getHeroCameraDefaults(stage, camera)).toEqual(camera);
       expect(getHeroCameraDefaults(forestStage, camera)).toEqual(camera);
+    });
+
+    it('puts the camera at the same fixed spot every time a stage is shown, whatever was shown before', async () => {
+      const { HeroCanvas } = await import('../src/scene/HeroCanvas');
+      const view = render(<HeroCanvas unit={unit} stage={forestStage} requestId={1} cameraResetId={0} />);
+      const forestCall = sceneState.camera.position.set.mock.calls.at(-1);
+      expect(forestCall).toEqual([-11.1, 3.3, 47.3]);
+
+      view.rerender(<HeroCanvas unit={unit} stage={ruinedCityStage} requestId={2} cameraResetId={0} />);
+      expect(sceneState.camera.position.set.mock.calls.at(-1)).toEqual([4.3, 1.8, 48.3]);
+      view.rerender(<HeroCanvas unit={unit} stage={stage} requestId={3} cameraResetId={0} />);
+      expect(sceneState.camera.position.set.mock.calls.at(-1)).toEqual([11.2, 15.9, 47.5]);
+      view.rerender(<HeroCanvas unit={unit} stage={forestStage} requestId={4} cameraResetId={0} />);
+      expect(sceneState.camera.position.set.mock.calls.at(-1)).toEqual(forestCall);
     });
 
     it('keeps the legacy Space defaults', () => {
@@ -180,12 +171,6 @@ describe('hero scene', () => {
   });
 
   describe('model placement', () => {
-    it('lifts a centered model so its feet sit on y = 0', () => {
-      expect(getGroundOffsetY(-0.5)).toBe(0.5);
-      expect(getGroundOffsetY(0)).toBe(0);
-      expect(getGroundOffsetY(Number.NaN)).toBe(0);
-    });
-
     it('converts display.rotationYDegrees to radians, clockwise from above for positive degrees', () => {
       expect(getRotationRadians(undefined)).toBe(0);
       expect(getRotationRadians(90)).toBeCloseTo(-Math.PI / 2);
@@ -193,28 +178,31 @@ describe('hero scene', () => {
     });
   });
 
-  describe('getHeightAwareScale', () => {
-    it('scales a measured model to its declared height while preserving authored scale', () => {
-      expect(getHeightAwareScale(2, 18, 1)).toBe(9);
-      expect(getHeightAwareScale(2, 18, 1.25)).toBe(11.25);
+  describe('static model placement', () => {
+    const placed: CollectionRecord = { ...unit, display: { scale: 20.6, groundOffset: 0.5, rotationYDegrees: 90 } };
+
+    it('applies the stored scale and ground offset without measuring the model', () => {
+      render(<HeroModel record={placed} onLoaded={vi.fn()} />);
+      const group = screen.getByTestId('hero-model');
+      expect(group.getAttribute('scale')).toBe('20.6');
+      expect(group.firstElementChild?.getAttribute('position')).toBe('0,0.5,0');
     });
 
-    it('measures a model by itself, ignoring the scale of whatever group it is currently mounted in', () => {
-      const model = new Group();
-      model.add(new Mesh(new BoxGeometry(2, 3, 2)));
-      const mount = new Group();
-      mount.scale.setScalar(20);
-      mount.add(model);
-      mount.updateMatrixWorld(true);
-
-      const bounds = getIntrinsicBounds(model);
-      expect(bounds.max.y - bounds.min.y).toBeCloseTo(3);
-      expect(model.parent).toBe(mount);
+    it('falls back to scale 1 and no offset when the record stores nothing', () => {
+      render(<HeroModel record={{ ...unit, display: undefined }} onLoaded={vi.fn()} />);
+      const group = screen.getByTestId('hero-model');
+      expect(group.getAttribute('scale')).toBe('1');
+      expect(group.firstElementChild?.getAttribute('position')).toBe('0,0,0');
     });
 
-    it('falls back to authored scale when height metadata or measured bounds are unavailable', () => {
-      expect(getHeightAwareScale(2, undefined, 1.25)).toBe(1.25);
-      expect(getHeightAwareScale(0, 18, 1.25)).toBe(1.25);
+    it('renders identically every time the same model is mounted again', () => {
+      const first = render(<HeroModel record={placed} onLoaded={vi.fn()} />);
+      const before = first.container.innerHTML;
+      first.unmount();
+      const second = render(<HeroModel record={{ ...unit, id: 'other', display: undefined }} onLoaded={vi.fn()} />);
+      second.unmount();
+      const third = render(<HeroModel record={placed} onLoaded={vi.fn()} />);
+      expect(third.container.innerHTML).toBe(before);
     });
   });
 

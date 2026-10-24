@@ -136,6 +136,14 @@ describe('stage validation and loading', () => {
   });
 });
 
+describe('display.groundOffset', () => {
+  it('accepts a finite offset and rejects anything else', () => {
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { scale: 20.6, groundOffset: 0.5 } })).not.toBeNull();
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { groundOffset: 'low' } })).toBeNull();
+    expect(validateCollectionRecord({ ...validCollectionRecord, display: { groundOffset: Number.POSITIVE_INFINITY } })).toBeNull();
+  });
+});
+
 describe('display.rotationYDegrees', () => {
   it('accepts a finite number and rejects other values', () => {
     expect(validateCollectionRecord({ ...validCollectionRecord, display: { rotationYDegrees: 90 } })).not.toBeNull();
