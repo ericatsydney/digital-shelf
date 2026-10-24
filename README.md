@@ -89,9 +89,16 @@ Create a Pages project connected to this repository with:
 
 No environment variables are required for the MVP. Deploy the contents of `dist/` as static assets.
 
-### Workers Static Assets alternative
+### Cloudflare Workers (Workers Builds)
 
-The same `dist/` directory can be served by Cloudflare Workers Static Assets if edge configuration is needed later. Configure Wrangler's static asset directory to point at `dist/`; do not add a Worker handler unless a future requirement needs edge logic. The application remains a static client bundle and continues to load all metadata and GLB files from local, same-origin paths.
+`wrangler.jsonc` publishes `dist/` as Workers Static Assets, with single-page-app fallback and no Worker handler. Connect the repository to a Worker named `digital-shelf` and set, under Settings -> Builds:
+
+- Production branch: `main`
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
+- Build variable `NODE_VERSION=22` if the build reports an unsupported Node version
+
+Every push to `main` then builds and deploys automatically. The application remains a static client bundle and loads all metadata and GLB files from same-origin paths (each file must stay under the 25 MiB asset limit).
 
 ## Project structure
 
