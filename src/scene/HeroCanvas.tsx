@@ -1,4 +1,4 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PresentationControls } from '@react-three/drei';
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useThree } from '@react-three/fiber';
@@ -50,6 +50,37 @@ export function getHeroCameraDefaults(
 /** The Hangar spins a platform under a fixed camera; every other stage orbits the camera. */
 export function getHeroControlsMode(stage: Pick<StageRecord, 'backdrop'>): 'turntable' | 'orbit' {
   return stage.backdrop.variant === 'hangar' ? 'turntable' : 'orbit';
+}
+
+/** Height of the ground on stages that have one (the robot's feet sit at y = 0); undefined elsewhere. */
+export function getCameraFloorY(stage: Pick<StageRecord, 'backdrop'>): number | undefined {
+  return stage.backdrop.variant === 'forest' || stage.backdrop.variant === 'ruined-city' ? 0 : undefined;
+}
+
+const minCameraHeightAboveFloor = 1;
+
+/** Largest orbit polar angle (from straight up) that keeps the camera at or above minY. */
+export function getMaxPolarAngle(targetY: number, distance: number, minY: number): number {
+  if (!(distance > 0)) return Math.PI;
+  const ratio = (minY - targetY) / distance;
+  if (ratio <= -1) return Math.PI;
+  if (ratio >= 1) return 0;
+  return Math.acos(ratio);
+}
+
+/** Keeps the orbiting camera above the ground so it never drops into a weird, under-floor angle. */
+function CameraFloorGuard({ controlsRef, minY }: { controlsRef: React.MutableRefObject<OrbitControlsImpl | null>; minY: number }) {
+  const camera = useThree(({ camera }) => camera);
+  useFrame(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    controls.maxPolarAngle = getMaxPolarAngle(controls.target.y, camera.position.distanceTo(controls.target), minY);
+    if (camera.position.y < minY) {
+      camera.position.y = minY;
+      controls.update();
+    }
+  });
+  return null;
 }
 
 class ErrorBoundary<P extends { children: ReactNode } = { children: ReactNode }> extends Component<
@@ -149,6 +180,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   }, []);
 
   const turntable = getHeroControlsMode(stage) === 'turntable';
+  const floorY = getCameraFloorY(stage);
   if (!unit) {
     return <div className="hero-canvas hero-canvas--empty" role="status">Select a unit from the roster</div>;
   }
@@ -182,6 +214,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
             {model}
           </PresentationControls>
         ) : model}
+        {floorY !== undefined && <CameraFloorGuard controlsRef={controlsRef} minY={floorY + minCameraHeightAboveFloor} />}
         <CameraRig position={cameraPosition} target={cameraTarget} cameraResetId={cameraResetId} controlsRef={controlsRef} />
         <OrbitControls ref={controlsRef} target={cameraTarget} enablePan={!turntable} enableZoom enableRotate={!turntable} />
       </Canvas>

@@ -16,6 +16,7 @@ vi.mock('react', async (importOriginal) => ({
 type SceneElement = React.ReactElement<{
   children?: ReactNode;
   args?: number[];
+  position?: number[];
   color?: string;
   roughness?: number;
   metalness?: number;
@@ -93,6 +94,16 @@ describe('shaded stage surfaces', () => {
     expect(tubes.length).toBeGreaterThanOrEqual(2);
     for (const tube of tubes) expect((tube.props.args as number[])[2]).toBeGreaterThanOrEqual(0.22);
     expect(all.filter((element) => (element.props as { 'data-testid'?: string })['data-testid'] === 'cable-connector').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('lifts the Forest and Ruined City scenery so the ground meets the robot feet at y = 0', () => {
+    for (const variant of ['forest', 'ruined-city'] as const) {
+      const scene = <StageBackdrop stage={{ accentColor }} config={{ variant, particleCount: 0, motion: 0 }} />;
+      const lifted = elements(scene).find((element) => element.type === 'group' && JSON.stringify(element.props.position) === '[0,1.25,0]');
+      expect(lifted, variant).toBeDefined();
+    }
+    const hangar = <StageBackdrop stage={{ accentColor }} config={{ variant: 'hangar', particleCount: 0, motion: 0 }} />;
+    expect(elements(hangar).find((element) => element.type === 'group' && JSON.stringify(element.props.position) === '[0,1.25,0]')).toBeUndefined();
   });
 
   it('keeps Hangar light strips luminous', () => {

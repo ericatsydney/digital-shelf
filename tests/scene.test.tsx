@@ -4,7 +4,7 @@ import { Scene, Vector3 } from 'three';
 import { StageScene } from '../src/scene/StageScene';
 import type { CollectionRecord, StageRecord } from '../src/app/types';
 import { HeroModel, getRotationRadians } from '../src/scene/HeroModel';
-import { getHeroCameraDefaults, getHeroControlsMode } from '../src/scene/HeroCanvas';
+import { getCameraFloorY, getHeroCameraDefaults, getHeroControlsMode, getMaxPolarAngle } from '../src/scene/HeroCanvas';
 
 const { sceneState } = vi.hoisted(() => ({
   sceneState: {
@@ -14,6 +14,7 @@ const { sceneState } = vi.hoisted(() => ({
 }));
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="r3f-canvas">{children}</div>,
+  useFrame: vi.fn(),
   useThree: (selector: (state: unknown) => unknown) => selector({
     gl: { domElement: document.createElement('canvas') },
     scene: sceneState.scene,
@@ -78,6 +79,23 @@ describe('hero scene', () => {
     sceneState.camera.position.set.mockClear();
     sceneState.camera.lookAt.mockClear();
   });
+  describe('camera floor guard', () => {
+    it('only guards the stages that have a ground', () => {
+      expect(getCameraFloorY(forestStage)).toBe(0);
+      expect(getCameraFloorY(ruinedCityStage)).toBe(0);
+      expect(getCameraFloorY(stage)).toBeUndefined();
+      expect(getCameraFloorY(spaceStage)).toBeUndefined();
+    });
+
+    it('limits the orbit so the camera stays at least the minimum height above the floor', () => {
+      // Camera 49 m from a target 10.3 m up: it may go to y = 1 but no lower.
+      const limit = getMaxPolarAngle(10.3, 49, 1);
+      expect(10.3 + 49 * Math.cos(limit)).toBeCloseTo(1, 5);
+      expect(getMaxPolarAngle(10.3, 5, 1)).toBeCloseTo(Math.PI); // too close to reach the floor: no limit
+      expect(getMaxPolarAngle(0.2, 49, 1)).toBeLessThan(Math.PI / 2); // a low target cannot be orbited below the horizon
+    });
+  });
+
   describe('getHeroCameraDefaults', () => {
     it('uses a street-facing city framing aligned with the roadway', () => {
       const camera = getHeroCameraDefaults(ruinedCityStage);

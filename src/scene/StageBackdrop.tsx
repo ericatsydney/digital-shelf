@@ -76,6 +76,9 @@ function SpaceBackdrop({ color, config }: { color: string; config: StageBackdrop
   );
 }
 
+/** Forest and city grounds are modelled at y = -1.25; lift them so they meet the robot's feet at y = 0. */
+const groundLift = 1.25;
+
 export function StageBackdrop({ stage, config }: StageBackdropProps) {
   const reducedMotion = usePrefersReducedMotion();
   const effectiveConfig = useMemo(
@@ -85,11 +88,11 @@ export function StageBackdrop({ stage, config }: StageBackdropProps) {
 
   switch (effectiveConfig.variant) {
     case 'forest':
-      return <ForestBackdrop />;
+      return <group position={[0, groundLift, 0]}><ForestBackdrop /></group>;
     case 'space':
       return <SpaceBackdrop color={stage.accentColor} config={effectiveConfig} />;
     case 'ruined-city':
-      return <StreetCanyonBackdrop />;
+      return <group position={[0, groundLift, 0]}><StreetCanyonBackdrop /></group>;
     case 'hangar':
     default:
       return <HangarBackdrop color={stage.accentColor} />;
