@@ -1,38 +1,39 @@
+import { useEffect, useMemo, useState } from 'react';
+import type { Texture, WebGLProgramParametersWithUniforms } from 'three';
+import { loadForestGroundTexture } from './forestGroundTexture';
 import { getForestLayout, type ForestTree } from './environmentLayout';
+import { buildTreeGeometry } from './treeGeometry';
+import { applyWind, tickWind } from './windMaterial';
 
 function Tree({ tree }: { tree: ForestTree }) {
+  const geometry = useMemo(() => buildTreeGeometry(tree), [tree]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  const strength = tree.layer === 3 ? 0.3 : 0.5;
+  const sway = (shader: WebGLProgramParametersWithUniforms) => applyWind(shader, { treeHeight: tree.height, strength });
   return (
-    <group position={tree.position} rotation={[0, tree.position[2] * 0.13, 0]}>
-      <mesh position={[0, tree.height * 0.36, 0]}>
-        <cylinderGeometry args={[0.35, 0.65, tree.height * 0.72, 7]} />
-        <meshStandardMaterial color="#574e3b" roughness={1} />
-      </mesh>
-      <mesh
-        position={[0, tree.height * 0.78, 0]}
-        scale={tree.canopy === 'flat' ? [tree.radius * 1.5, tree.radius * 0.5, tree.radius * 1.5] : [tree.radius, tree.radius * 0.85, tree.radius]}
-      >
-        <icosahedronGeometry args={[1, 1]} />
-        <meshStandardMaterial color={tree.color} roughness={1} flatShading />
-      </mesh>
-    </group>
+    <mesh geometry={geometry} position={tree.position} rotation={[0, tree.position[2] * 0.13, 0]} onBeforeRender={tickWind}>
+      <meshStandardMaterial vertexColors roughness={1} flatShading onBeforeCompile={sway} customProgramCacheKey={() => 'tree-wind'} />
+    </mesh>
   );
 }
 
 export function ForestBackdrop() {
   const forest = getForestLayout();
+  const [groundTexture, setGroundTexture] = useState<Texture | null>(null);
+  useEffect(() => {
+    let active = true;
+    void loadForestGroundTexture().then((texture) => { if (active) setGroundTexture(texture); });
+    return () => { active = false; };
+  }, []);
   return (
     <group>
-      <mesh position={[0, forest.floorY - 0.12, -10]}>
+      <mesh position={[0, forest.floorY - 0.22, -10]}>
         <boxGeometry args={[160, 0.24, 180]} />
         <meshStandardMaterial color="#5d8f3e" roughness={1} />
       </mesh>
-      <mesh position={[0, forest.floorY + 0.025, 0]}>
-        <cylinderGeometry args={[13, 13, 0.04, 32]} />
-        <meshStandardMaterial color="#9a9b63" roughness={1} />
-      </mesh>
-      <mesh position={[0, forest.floorY + 0.01, 16]} rotation={[0, -0.1, 0]}>
-        <boxGeometry args={[7, 0.025, 72]} />
-        <meshStandardMaterial color="#b3a574" roughness={1} />
+      <mesh position={[0, forest.floorY, -10]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[160, 180]} />
+        <meshStandardMaterial color={groundTexture ? '#ffffff' : '#5d8f3e'} map={groundTexture ?? undefined} roughness={1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
       </mesh>
       {[...forest.trees, ...forest.horizon].map((tree, i) => (
         <Tree key={i} tree={tree} />

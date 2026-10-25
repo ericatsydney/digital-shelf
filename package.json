@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "model:generate": "tsx tools/model-generator/cli.ts"
+    "model:generate": "tsx tools/model-generator/cli.ts",
+    "ground:generate": "tsx tools/forest-ground/generate.ts"
   },
   "dependencies": {
     "@react-three/drei": "latest",
