@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "model:generate": "tsx tools/model-generator/cli.ts",
-    "ground:generate": "tsx tools/forest-ground/generate.ts"
+    "ground:generate": "tsx tools/forest-ground/generate.ts",
+    "glow:generate": "tsx tools/ember-glow/generate.ts"
   },
   "dependencies": {
     "@react-three/drei": "latest",

@@ -140,6 +140,13 @@ describe('shaded stage surfaces', () => {
     expect(all.filter((element) => element.type === 'meshBasicMaterial' && element.props.color === '#ffc777')).toHaveLength(0);
   });
 
+  it('draws no red pitched roofs on the city buildings', () => {
+    const all = elements(city);
+    const redRoofs = all.filter((element) => element.type === 'instancedMesh').flatMap((mesh) => elements(mesh.props.children))
+      .filter((element) => typeof element.type === 'string' && element.type.endsWith('Material') && element.props.color === '#8a4b3a');
+    expect(redRoofs).toHaveLength(0);
+  });
+
   it('batches repeated facade parts into instanced meshes to bound draw calls', () => {
     const all = elements(city);
     expect(all.filter((element) => element.type === 'instancedMesh').length).toBeGreaterThan(3);

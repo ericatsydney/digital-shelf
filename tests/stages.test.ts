@@ -73,7 +73,7 @@ describe('stage backdrop validation', () => {
   it('gives every ruined-city building weathered stone, windows, a roof style and shell damage', () => {
     const buildings = getRuinedCityBuildings();
     expect(buildings).toEqual(getRuinedCityBuildings());
-    expect(new Set(buildings.map((building) => building.roof))).toEqual(new Set(['pitched', 'flat', 'broken']));
+    expect(new Set(buildings.map((building) => building.roof))).toEqual(new Set(['flat', 'broken']));
     expect(buildings.some((building) => building.cornerCut)).toBe(true);
     expect(buildings.some((building) => building.balconies > 0)).toBe(true);
     for (const building of buildings) {
@@ -85,6 +85,16 @@ describe('stage backdrop validation', () => {
       expect(red).toBeLessThanOrEqual(0xa0);
       expect(red >= green && green >= blue).toBe(true);
     }
+  });
+
+  it('caps every ruined-city building at five floors and derives its height from the floor count', () => {
+    const buildings = getRuinedCityBuildings();
+    for (const building of buildings) {
+      expect(building.windowRows).toBeGreaterThanOrEqual(3);
+      expect(building.windowRows).toBeLessThanOrEqual(5);
+      expect(building.size[1]).toBeCloseTo(4 + building.windowRows * 3.3, 5);
+    }
+    expect(new Set(buildings.map((building) => building.windowRows)).size).toBeGreaterThan(1);
   });
 
   it('uses real-world proportions for the six-lane street canyon', () => {
@@ -99,7 +109,7 @@ describe('stage backdrop validation', () => {
       centerDividerWidth: 1,
     });
     expect(buildings.every(({ size: [width, height, depth] }) =>
-      width >= 10 && width <= 18 && height >= 18 && height <= 32 && depth >= 12 && depth <= 24,
+      width >= 10 && width <= 18 && height >= 13 && height <= 21 && depth >= 12 && depth <= 24,
     )).toBe(true);
   });
 });

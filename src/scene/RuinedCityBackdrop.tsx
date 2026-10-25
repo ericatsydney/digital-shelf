@@ -1,4 +1,7 @@
 import { useMemo } from 'react';
+import { getCityFireSpots } from './cityFire';
+import { EmberGlow } from './EmberGlow';
+import { Fire } from './Fire';
 import { Instanced, type Part, type Vec3 } from './Instanced';
 import { getWallTexture } from './wallTexture';
 
@@ -7,7 +10,7 @@ export type Building = {
   position: Vec3;
   size: Vec3;
   color: string;
-  roof: 'pitched' | 'flat' | 'broken';
+  roof: 'flat' | 'broken';
   windowRows: number;
   windowColumns: number;
   balconies: number;
@@ -32,29 +35,38 @@ export function getRuinedCityStreetDimensions() {
   } as const;
 }
 
-type BuildingSpec = Omit<Building, 'position' | 'size'> & { z: number; width: number; height: number; depth: number };
+/** Floors are window rows; a building is never taller than five of them. */
+export const maxBuildingFloors = 5;
+const floorHeight = 3.3;
+const groundStoreyAndParapet = 4;
+
+type BuildingSpec = Omit<Building, 'position' | 'size'> & { z: number; width: number; depth: number };
 
 const ruinedCityBuildingSpecs: BuildingSpec[] = [
-  { side: -1, z: -22, width: 14, height: 22, depth: 16, color: '#948a79', roof: 'pitched', windowRows: 5, windowColumns: 4, balconies: 2, shellHoles: 3, cornerCut: false },
-  { side: -1, z: -7, width: 12, height: 18, depth: 12, color: '#8a8172', roof: 'broken', windowRows: 4, windowColumns: 3, balconies: 0, shellHoles: 4, cornerCut: true },
-  { side: -1, z: 9, width: 16, height: 28, depth: 18, color: '#9a8f7b', roof: 'flat', windowRows: 6, windowColumns: 5, balconies: 3, shellHoles: 2, cornerCut: false },
-  { side: -1, z: 24, width: 18, height: 32, depth: 16, color: '#857b6c', roof: 'pitched', windowRows: 7, windowColumns: 5, balconies: 2, shellHoles: 3, cornerCut: true },
-  { side: 1, z: -20, width: 16, height: 20, depth: 15, color: '#8f8472', roof: 'broken', windowRows: 5, windowColumns: 4, balconies: 1, shellHoles: 3, cornerCut: true },
-  { side: 1, z: -5, width: 18, height: 30, depth: 14, color: '#887e6e', roof: 'pitched', windowRows: 7, windowColumns: 5, balconies: 3, shellHoles: 2, cornerCut: false },
-  { side: 1, z: 11, width: 12, height: 19, depth: 16, color: '#968b78', roof: 'flat', windowRows: 4, windowColumns: 3, balconies: 1, shellHoles: 4, cornerCut: false },
-  { side: 1, z: 25, width: 15, height: 26, depth: 18, color: '#827868', roof: 'broken', windowRows: 6, windowColumns: 4, balconies: 2, shellHoles: 3, cornerCut: true },
+  { side: -1, z: -22, width: 14, depth: 16, color: '#948a79', roof: 'flat', windowRows: 5, windowColumns: 4, balconies: 2, shellHoles: 3, cornerCut: false },
+  { side: -1, z: -7, width: 12, depth: 12, color: '#8a8172', roof: 'broken', windowRows: 4, windowColumns: 3, balconies: 0, shellHoles: 4, cornerCut: true },
+  { side: -1, z: 9, width: 16, depth: 18, color: '#9a8f7b', roof: 'flat', windowRows: 5, windowColumns: 5, balconies: 3, shellHoles: 2, cornerCut: false },
+  { side: -1, z: 24, width: 18, depth: 16, color: '#857b6c', roof: 'flat', windowRows: 4, windowColumns: 5, balconies: 2, shellHoles: 3, cornerCut: true },
+  { side: 1, z: -20, width: 16, depth: 15, color: '#8f8472', roof: 'broken', windowRows: 4, windowColumns: 4, balconies: 1, shellHoles: 3, cornerCut: true },
+  { side: 1, z: -5, width: 18, depth: 14, color: '#887e6e', roof: 'flat', windowRows: 5, windowColumns: 5, balconies: 3, shellHoles: 2, cornerCut: false },
+  { side: 1, z: 11, width: 12, depth: 16, color: '#968b78', roof: 'flat', windowRows: 3, windowColumns: 3, balconies: 1, shellHoles: 4, cornerCut: false },
+  { side: 1, z: 25, width: 15, depth: 18, color: '#827868', roof: 'broken', windowRows: 5, windowColumns: 4, balconies: 2, shellHoles: 3, cornerCut: true },
 ];
 
 export function getRuinedCityBuildings(): Building[] {
-  return ruinedCityBuildingSpecs.map(({ z, width, height, depth, ...rest }) => ({
-    ...rest,
-    position: [
-      rest.side * (roadwayWidth / 2 + sidewalkWidth + 1.2 + width / 2),
-      streetBaseY + height / 2,
-      z,
-    ],
-    size: [width, height, depth],
-  }));
+  return ruinedCityBuildingSpecs.map(({ z, width, depth, ...rest }) => {
+    const height = groundStoreyAndParapet + Math.min(rest.windowRows, maxBuildingFloors) * floorHeight;
+    return {
+      ...rest,
+      windowRows: Math.min(rest.windowRows, maxBuildingFloors),
+      position: [
+        rest.side * (roadwayWidth / 2 + sidewalkWidth + 1.2 + width / 2),
+        streetBaseY + height / 2,
+        z,
+      ],
+      size: [width, height, depth],
+    };
+  });
 }
 
 const seeded = (seed: number) => {
@@ -104,15 +116,10 @@ export function getFacadeParts(building: Building, index: number): FacadeParts {
 
   parts.cornice.push({ position: [bx, baseY + height + 0.15, bz], scale: [width + 0.5, 0.3, depth + 0.5] });
 
-  if (building.roof === 'pitched') {
-    for (const slope of [-1, 1]) {
-      parts.roofs.push({
-        position: [bx + slope * (width / 4), baseY + height + 1.6, bz],
-        scale: [width / 2 + 0.6, 0.35, depth + 0.6],
-        rotation: [0, 0, -slope * 0.5],
-      });
+  if (building.roof === 'flat') {
+    if (index % 2 === 0) {
+      parts.chimneys.push({ position: [bx + building.side * (width / 5), baseY + height + 1.6, bz - depth / 4], scale: [1.1, 2.6, 1.1] });
     }
-    parts.chimneys.push({ position: [bx + building.side * (width / 5), baseY + height + 3.2, bz - depth / 4], scale: [1.1, 2.6, 1.1] });
   } else if (building.roof === 'broken') {
     for (let shard = 0; shard < 5; shard += 1) {
       const shardHeight = 1 + seeded(index * 13 + shard) * 3.2;
@@ -161,7 +168,7 @@ function CityBuilding({ building, index }: { building: Building; index: number }
       <Instanced parts={parts.balconySlabs} shape="box" color="#8c8272" />
       <Instanced parts={parts.rails} shape="box" color="#2a2928" />
       <Instanced parts={parts.cornice} shape="box" color="#a2977f" />
-      <Instanced parts={parts.roofs} shape="box" color={building.roof === 'pitched' ? '#8a4b3a' : '#6e655a'} />
+      <Instanced parts={parts.roofs} shape="box" color="#6e655a" />
       <Instanced parts={parts.chimneys} shape="box" color="#7d7365" />
       <Instanced parts={parts.rubble} shape="box" color="#6d675c" />
     </group>
@@ -217,6 +224,7 @@ export function StreetCanyonBackdrop() {
   const debris = useMemo(debrisParts, []);
   const wrecks = useMemo(wreckParts, []);
   const smoke = useMemo(smokeParts, []);
+  const fires = useMemo(getCityFireSpots, []);
 
   return (
     <group>
@@ -258,6 +266,7 @@ export function StreetCanyonBackdrop() {
         <CityBuilding key={`${building.side}:${building.position[2]}`} building={building} index={index} />
       ))}
       <Instanced parts={smoke} shape="sphere" color="#707478" opacity={0.1} />
+      {fires.map((spot) => (spot.kind === 'live' ? <Fire key={spot.seed} spot={spot} /> : <EmberGlow key={spot.seed} spot={spot} />))}
     </group>
   );
 }

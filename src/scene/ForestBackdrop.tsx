@@ -33,7 +33,7 @@ export function ForestBackdrop() {
       </mesh>
       <mesh position={[0, forest.floorY, -10]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[160, 180]} />
-        <meshStandardMaterial color={groundTexture ? '#ffffff' : '#5d8f3e'} map={groundTexture ?? undefined} roughness={1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+        <meshStandardMaterial key={groundTexture ? 'textured' : 'flat'} color={groundTexture ? '#ffffff' : '#5d8f3e'} map={groundTexture ?? undefined} roughness={1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
       </mesh>
       {[...forest.trees, ...forest.horizon].map((tree, i) => (
         <Tree key={i} tree={tree} />
