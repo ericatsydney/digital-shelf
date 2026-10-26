@@ -1,24 +1,13 @@
-import type { CollectionRecord, StageRecord } from '../app/types';
+import type { CollectionRecord } from '../app/types';
 
 type CommandSheetProps = {
   records: CollectionRecord[];
   skipped: number;
   selectedUnit: CollectionRecord | null;
-  stages: StageRecord[];
-  selectedStageId: string;
   onSelectUnit: (unitId: string) => void;
-  onSelectStage: (stageId: string) => void;
 };
 
-export function CommandSheet({
-  records,
-  skipped,
-  selectedUnit,
-  stages,
-  selectedStageId,
-  onSelectUnit,
-  onSelectStage,
-}: CommandSheetProps) {
+export function CommandSheet({ records, skipped, selectedUnit, onSelectUnit }: CommandSheetProps) {
   return (
     <section className="command-sheet" aria-label="Tactical command sheet">
       <div className="command-sheet__roster">
@@ -40,27 +29,6 @@ export function CommandSheet({
               {record.tags?.map((tag) => <span className="tag" key={tag}>{tag}</span>)}
             </button>
           ))}
-        </div>
-      </div>
-
-      <div className="command-sheet__controls">
-        <div>
-          <div className="section-heading"><span className="eyebrow">TACTICAL STAGE</span></div>
-          <div className="stage-list">
-            {stages.map((stage) => (
-              <button
-                aria-pressed={selectedStageId === stage.id}
-                aria-label={`${stage.name} stage`}
-                className="stage-button"
-                key={stage.id}
-                type="button"
-                onClick={() => onSelectStage(stage.id)}
-              >
-                <span className="stage-swatch" style={{ backgroundColor: stage.accentColor }} />
-                {stage.name}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </section>

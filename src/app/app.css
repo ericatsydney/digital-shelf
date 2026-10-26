@@ -51,7 +51,7 @@ button {
   align-self: end;
   width: min(100% - 2rem, 1100px);
   margin: 0 auto;
-  padding: 2rem 0 3rem;
+  padding: 2rem 0 4.5rem;
 }
 
 .hero-canvas {
@@ -196,7 +196,7 @@ button {
 
 .hero-display h1 {
   margin: 0.35rem 0;
-  font-size: clamp(1.5rem, 5.4vw, 4.2rem);
+  font-size: clamp(1.1rem, 3vw, 2.2rem);
   letter-spacing: -0.06em;
   text-transform: uppercase;
 }
@@ -217,16 +217,41 @@ button {
 .command-sheet__controls { display: grid; gap: 1.5rem; align-content: start; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.8rem; }
 .section-heading__count { color: #72849a; font-size: 0.8rem; }
-.unit-list, .stage-list { display: grid; gap: 0.55rem; }
-.unit-card, .stage-button { border: 1px solid #26364a; background: #101a29; padding: 0.8rem; text-align: left; cursor: pointer; }
-.unit-card:hover, .unit-card--selected, .stage-button[aria-pressed='true'] { border-color: #55d6ff; background: #13283a; }
+.unit-list { display: grid; gap: 0.55rem; }
+.unit-card { border: 1px solid #26364a; background: #101a29; padding: 0.8rem; text-align: left; cursor: pointer; }
+.unit-card:hover, .unit-card--selected { border-color: #55d6ff; background: #13283a; }
 .unit-card__title, .unit-card__category { display: block; }
 .unit-card__category { margin-top: 0.25rem; color: #8ea2b8; font-size: 0.82rem; }
 .tag { display: inline-block; margin: 0.65rem 0.4rem 0 0; color: #55d6ff; font-size: 0.72rem; }
 .notice { color: #ffc76b; font-size: 0.82rem; }
-.stage-button { color: #c3d2e0; }
-.stage-button { display: flex; align-items: center; gap: 0.55rem; }
-.stage-swatch { width: 0.65rem; height: 0.65rem; border-radius: 50%; }
+.stage-switcher {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stage-icon-button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid #35465a;
+  background: rgba(7, 17, 31, 0.88);
+  color: #c3d2e0;
+  cursor: pointer;
+}
+
+.stage-icon-button:hover,
+.stage-icon-button[aria-pressed='true'] {
+  border-color: var(--stage-accent, #55d6ff);
+  color: var(--stage-accent, #55d6ff);
+}
+
+.stage-icon-button[aria-pressed='true'] { box-shadow: 0 0 0 1px var(--stage-accent, #55d6ff); }
 
 @media (max-width: 700px) {
   .hero-display { min-height: 76vh; }

@@ -3,6 +3,7 @@ import { loadCollection } from '../data/collection';
 import { loadStages } from '../data/stages';
 import type { CollectionRecord, StageRecord } from './types';
 import { CommandSheet } from '../components/CommandSheet';
+import { StageSwitcher } from '../components/StageSwitcher';
 import { initialTacticalState, tacticalReducer } from '../state/tacticalState';
 import { HeroCanvas } from '../scene/HeroCanvas';
 
@@ -88,6 +89,11 @@ export function App() {
           onReady={handleUnitReady}
           onError={handleUnitError}
         />
+        <StageSwitcher
+          stages={stages}
+          selectedStageId={state.stageId}
+          onSelectStage={(stageId) => dispatch({ type: 'select-stage', stageId })}
+        />
         <div className="hero-display__content">
           <span className="eyebrow">TACTICAL SHOWCASE</span>
           <h1>{selectedUnit ? selectedUnit.title : 'Hero display'}</h1>
@@ -103,10 +109,7 @@ export function App() {
         records={records}
         skipped={skipped}
         selectedUnit={selectedUnit}
-        stages={stages}
-        selectedStageId={state.stageId}
         onSelectUnit={(unitId) => dispatch({ type: 'select-unit', unitId })}
-        onSelectStage={(stageId) => dispatch({ type: 'select-stage', stageId })}
       />
     </main>
   );
