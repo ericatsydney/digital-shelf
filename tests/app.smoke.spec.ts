@@ -163,7 +163,8 @@ test.describe('tactical showcase', () => {
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
 
-    await page.getByRole('button', { name: /Light Guncannon/ }).click();
+    await page.getByRole('button', { name: 'Select unit' }).click();
+    await page.getByRole('option', { name: 'Light Guncannon' }).click();
 
     const hero = page.locator('.hero-display');
     const commandSheet = page.getByRole('region', { name: 'Tactical command sheet' });
@@ -185,5 +186,26 @@ test.describe('tactical showcase', () => {
     const heroBox = await hero.boundingBox();
     const sheetBox = await commandSheet.boundingBox();
     expect(heroBox?.height).toBeGreaterThan(sheetBox?.height ?? 0);
+  });
+  test('opens the mobile unit dropdown upward so every option stays inside the viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    await page.getByRole('button', { name: 'Select unit' }).click();
+    const options = page.getByRole('option');
+    await expect(options.first()).toBeVisible();
+
+    const count = await options.count();
+    expect(count).toBeGreaterThan(0);
+    for (let index = 0; index < count; index += 1) {
+      const box = await options.nth(index).boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+    }
+
+    await page.getByRole('option', { name: 'Light Guncannon' }).click();
+    await expect(options.first()).toBeHidden();
+    await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Light Guncannon', { exact: true })).toBeVisible();
   });
 });

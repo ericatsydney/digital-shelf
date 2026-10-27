@@ -11,7 +11,9 @@ import { Turntable } from './Turntable';
 import { getCameraLimits } from './cameraLimits';
 import { CaptureButton } from '../components/CaptureButton';
 
-const canvasDpr: [number, number] = [1, 2];
+// The hero fills the screen, so phones render far more pixels; cap their density.
+const isNarrowScreen = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 700px)').matches;
+const canvasDpr: [number, number] = isNarrowScreen ? [1, 1.25] : [1, 2];
 
 type HeroCanvasProps = {
   unit: CollectionRecord | null;

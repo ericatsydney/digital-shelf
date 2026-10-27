@@ -64,8 +64,7 @@ describe('command UI', () => {
 
     expect(await screen.findByRole('button', { name: /Light Guncannon/i })).toBeInTheDocument();
     expect(screen.getByText('Hero display')).toBeInTheDocument();
-    expect(screen.getByText('Support Unit')).toBeInTheDocument();
-    expect(screen.getByText('mascot')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Select unit' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
     expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
     expect(screen.getByText('Select a unit from the roster to view it.')).toBeInTheDocument();
