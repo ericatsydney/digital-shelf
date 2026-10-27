@@ -8,7 +8,7 @@ export type Part = { position: Vec3; scale: Vec3; rotation?: Vec3 };
 /** One draw call for many copies of a unit shape; matrices are declarative so no hooks run inside the scene. */
 export function Instanced({ parts, shape, color, opacity = 1 }: {
   parts: Part[];
-  shape: 'box' | 'cylinder' | 'sphere';
+  shape: 'box' | 'cylinder' | 'sphere' | 'rock';
   color: string;
   opacity?: number;
 }) {
@@ -29,6 +29,8 @@ export function Instanced({ parts, shape, color, opacity = 1 }: {
       {shape === 'box' && <boxGeometry args={[1, 1, 1]} />}
       {shape === 'cylinder' && <cylinderGeometry args={[0.5, 0.5, 1, 14]} />}
       {shape === 'sphere' && <sphereGeometry args={[0.5, 10, 8]} />}
+      {/* Detail 0 keeps the faces flat-shaded, so chunks read as broken concrete. */}
+      {shape === 'rock' && <dodecahedronGeometry args={[0.5, 0]} />}
       {opacity < 1
         ? <meshBasicMaterial color={color} transparent opacity={opacity} depthWrite={false} />
         : <meshStandardMaterial color={color} roughness={1} />}
