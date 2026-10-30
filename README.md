@@ -6,6 +6,8 @@ All collection metadata, models, stages, and runtime libraries are local to the 
 
 The three stages surround the hero with local geometry: Hangar is a maintenance bay with steel beams, catwalks, crates and floor markings; Forest is a clearing with layered trees, rocks, a worn path and mild distance fog; Ruined City remains a damaged urban roadway. Stage changes restore a fitted camera view, with orbit, pan and zoom available afterward. Forest hides the tactical grid, and its fog is included in PNG captures.
 
+See the [CEO product review](docs/2026-10-31-ceo-product-review.md) for the recommended product direction and prioritized UI/UX opportunities.
+
 ## Requirements
 
 - Node.js 20 or newer
