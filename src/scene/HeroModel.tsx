@@ -1,6 +1,7 @@
 import { useGLTF } from '@react-three/drei';
 import { useEffect } from 'react';
 import type { CollectionRecord } from '../app/types';
+import { trackModelProgress } from './modelProgress';
 
 type HeroModelProps = {
   record: CollectionRecord;
@@ -14,7 +15,7 @@ export function getRotationRadians(degrees: number | undefined): number {
 
 /** Renders the model at the scale and ground offset stored in its record; nothing is measured at runtime. */
 export function HeroModel({ record, onLoaded }: HeroModelProps) {
-  const { scene } = useGLTF(record.model);
+  const { scene } = useGLTF(record.model, undefined, undefined, trackModelProgress);
   const scale = record.display?.scale ?? 1;
   const groundOffset = record.display?.groundOffset ?? 0;
 

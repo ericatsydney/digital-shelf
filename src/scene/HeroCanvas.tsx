@@ -8,8 +8,10 @@ import { HeroModel } from './HeroModel';
 import { StageScene } from './StageScene';
 import { StageBackdrop } from './StageBackdrop';
 import { Turntable } from './Turntable';
+import { resetModelProgress, useModelProgress } from './modelProgress';
 import { getCameraLimits } from './cameraLimits';
 import { CaptureButton } from '../components/CaptureButton';
+import { ControlsHint } from '../components/ControlsHint';
 
 // The hero fills the screen, so phones render far more pixels; cap their density.
 const isNarrowScreen = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 700px)').matches;
@@ -115,8 +117,15 @@ class HeroLoadBoundary extends ErrorBoundary<HeroLoadBoundaryProps> {
   }
 }
 
+/** Plain label until the loader reports real progress, then a rounded 1-100 percentage. */
+export function formatLoadingLabel(progress: number): string {
+  if (!Number.isFinite(progress) || progress <= 0) return 'Loading unit…';
+  return `Loading unit… ${Math.min(100, Math.round(progress))}%`;
+}
+
 function LoadingFallback() {
-  return <div className="hero-canvas__status" role="status">Loading unit…</div>;
+  const progress = useModelProgress();
+  return <div className="hero-canvas__status" role="status">{formatLoadingLabel(progress)}</div>;
 }
 
 /** Places the camera at its fixed default; nothing depends on the model or its measured size. */
@@ -145,12 +154,14 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [hintDismissed, setHintDismissed] = useState(false); // per visit only; a new visit shows it again
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const currentRequestId = useRef(requestId);
   currentRequestId.current = requestId;
   useEffect(() => {
     setLoaded(false);
     setLoadError(false);
+    resetModelProgress();
   }, [requestId, unit?.id]);
   const isCurrent = useCallback(() => currentRequestId.current === requestId, [requestId]);
   const handleReady = useCallback(() => {
@@ -195,6 +206,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       style={{ backgroundColor: stage.background }}
       data-backdrop-variant={stage.backdrop.variant}
       aria-label={`${unit.title} 3D model`}
+      onPointerDown={(event) => { if (event.target instanceof HTMLCanvasElement) setHintDismissed(true); }}
     >
       <Canvas
         gl={{ preserveDrawingBuffer: true }}
@@ -216,7 +228,10 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       </Canvas>
       {!loaded && !loadError && <LoadingFallback />}
       {loadError && <div className="hero-canvas__status" role="alert">Model unavailable</div>}
-      <CaptureButton canvas={canvas} filename={`${unit.id}-tactical-showcase.png`} />
+      {loaded && !loadError && !hintDismissed && (
+        <ControlsHint mode={turntable ? 'turntable' : 'orbit'} onDismiss={() => setHintDismissed(true)} />
+      )}
+      <CaptureButton canvas={canvas} unitId={unit.id} title={unit.title} />
     </div>
   );
 }

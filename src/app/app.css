@@ -175,7 +175,8 @@ button {
   gap: 0.4rem;
 }
 
-.capture-button {
+.capture-button,
+.retry-button {
   border: 1px solid #55d6ff;
   padding: 0.65rem 0.85rem;
   background: rgba(7, 17, 31, 0.88);
@@ -302,3 +303,38 @@ button {
   .stage-switcher { bottom: 4.4rem; }
   .hero-display__content { padding-bottom: 8rem; }
 }
+
+.controls-hint {
+  position: absolute;
+  bottom: 4.6rem;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: calc(100% - 2rem);
+  transform: translateX(-50%);
+  padding: 0.35rem 0.4rem 0.35rem 0.8rem;
+  border: 1px solid #35465a;
+  background: rgba(7, 17, 31, 0.82);
+  color: #c3d2e0;
+  font-size: 0.78rem;
+}
+.controls-hint button {
+  border: 0;
+  background: transparent;
+  min-width: 2rem;
+  min-height: 2rem;
+  color: #c3d2e0;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .controls-hint { bottom: 9rem; }
+}
+.capture-saved { margin: 0; padding: 0.45rem 0.6rem; background: rgba(7, 17, 31, 0.92); color: #c3f0d2 !important; font-size: 0.78rem; max-width: 18rem; overflow-wrap: anywhere; }
+
+/* The title block spans the full width at the bottom; let pointer input through to the canvas and hint beneath it. */
+.hero-display__content { pointer-events: none; }
+.hero-display__content button { pointer-events: auto; }

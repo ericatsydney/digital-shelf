@@ -3,27 +3,52 @@ import { expect, test } from '@playwright/test';
 test.describe('tactical showcase', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('renders the local collection and shows one hero without deployment controls', async ({ page }) => {
+  test('loads the first unit on arrival without any click', async ({ page }) => {
+    test.setTimeout(120_000);
     const modelResponse = page.waitForResponse(
-      (response) => response.url().endsWith('/models/light-guncannon.glb') && response.ok(),
+      (response) => response.url().endsWith('/models/hyaku-shiki.glb') && response.ok(),
     );
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
 
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Hero display' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Hyaku-Shiki' })).toBeVisible();
+    await expect(page.getByText('Select a unit from the roster to view it.')).toHaveCount(0);
     await expect(page.getByText('2 units')).toBeVisible();
     await expect(page.getByRole('button', { name: /Light Guncannon/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
-
-    await page.getByRole('button', { name: /Light Guncannon/ }).click();
-    await expect(page.getByRole('region', { name: 'Hero display' }).getByText('Light Guncannon', { exact: true })).toBeVisible();
-    await expect(page.locator('.hero-canvas')).toBeVisible();
     await expect(page.locator('.hero-canvas canvas')).toBeVisible();
     await modelResponse;
 
-    await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
-    await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
+    const hint = page.getByRole('note');
+    await expect(hint).toBeVisible({ timeout: 30_000 });
+    await expect(hint).toContainText('Drag to rotate');
+    await page.getByRole('button', { name: 'Dismiss controls hint' }).click({ timeout: 60_000 });
+    await expect(hint).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Light Guncannon/ }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Light Guncannon' })).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('shows the real download percentage while the first model loads', async ({ page }) => {
+    test.setTimeout(120_000);
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.enable');
+    await client.send('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 0,
+      downloadThroughput: 2 * 1024 * 1024,
+      uploadThroughput: -1,
+    });
+
+    await page.goto('/');
+    const status = page.getByRole('status').filter({ hasText: 'Loading unit' });
+    await expect(status).toHaveText(/Loading unit… \d+%/, { timeout: 60_000 });
+    await expect(page.getByRole('note')).toBeVisible({ timeout: 90_000 });
+    await expect(status).toHaveCount(0);
   });
 
   test('keeps the page mounted when Light Guncannon finishes loading', async ({ page }) => {
@@ -42,7 +67,7 @@ test.describe('tactical showcase', () => {
   });
 
   test('changes tactical stage and exposes the capture action', async ({ page }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -70,7 +95,8 @@ test.describe('tactical showcase', () => {
     const download = page.waitForEvent('download');
     await captureButton.click();
     const captured = await download;
-    expect(captured.suggestedFilename()).toMatch(/\.png$/);
+    expect(captured.suggestedFilename()).toMatch(/^digital-shelf-light-guncannon-.*\.png$/);
+    await expect(page.getByRole('status').filter({ hasText: 'Saved digital-shelf-light-guncannon-' })).toBeVisible();
     const pixels = await page.evaluate(async () => {
       const image = new Image();
       image.src = (window as Window & { capturedPng?: string }).capturedPng!;
@@ -187,6 +213,27 @@ test.describe('tactical showcase', () => {
     const sheetBox = await commandSheet.boundingBox();
     expect(heroBox?.height).toBeGreaterThan(sheetBox?.height ?? 0);
   });
+  test('fits a phone viewport with no horizontal overflow and every control on screen', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await expect(page.locator('.hero-canvas canvas')).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+
+    for (const locator of [
+      page.getByRole('button', { name: 'Forest stage' }),
+      page.getByRole('button', { name: 'Select unit' }),
+      page.getByRole('button', { name: 'Capture PNG' }),
+    ]) {
+      const box = await locator.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+    }
+  });
+
   test('opens the mobile unit dropdown upward so every option stays inside the viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');

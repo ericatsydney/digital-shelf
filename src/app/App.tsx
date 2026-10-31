@@ -1,3 +1,4 @@
+import { useGLTF } from '@react-three/drei';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { loadCollection } from '../data/collection';
 import { loadStages } from '../data/stages';
@@ -35,6 +36,12 @@ export function App() {
     dispatch({ type: 'unit-error', requestId });
   }, []);
 
+  const handleRetry = useCallback(() => {
+    const model = records.find((record) => record.id === state.selectedUnitId)?.model;
+    if (model) useGLTF.clear(model);
+    dispatch({ type: 'retry-unit' });
+  }, [records, state.selectedUnitId]);
+
   useEffect(() => {
     let active = true;
 
@@ -45,6 +52,8 @@ export function App() {
         setRecords(result.records);
         setSkipped(result.skipped);
         setCollectionStatus(result.records.length === 0 ? 'empty' : 'ready');
+        // Start every visit on the first unit, batched with the collection so the empty prompt never flashes.
+        if (result.records.length > 0) dispatch({ type: 'select-unit', unitId: result.records[0].id });
       } catch {
         if (active) setCollectionStatus('error');
       }
@@ -98,7 +107,14 @@ export function App() {
           <span className="eyebrow">TACTICAL SHOWCASE</span>
           <h1>{selectedUnit ? selectedUnit.title : 'Hero display'}</h1>
           {selectedUnit ? (
-            state.unitStatus === 'error' && <p role="alert">Model unavailable</p>
+            state.unitStatus === 'error' && (
+              <>
+                <p role="alert">Model unavailable</p>
+                <button type="button" className="retry-button" aria-label="Retry loading model" onClick={handleRetry}>
+                  Retry
+                </button>
+              </>
+            )
           ) : (
             <p>Select a unit from the roster to view it.</p>
           )}

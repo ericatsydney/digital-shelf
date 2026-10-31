@@ -12,6 +12,7 @@ export type TacticalAction =
   | { type: 'select-stage'; stageId: string }
   | { type: 'unit-ready'; requestId: number }
   | { type: 'unit-error'; requestId: number }
+  | { type: 'retry-unit' }
   | { type: 'capture-start' }
   | { type: 'capture-error' }
   | { type: 'capture-reset' };
@@ -44,6 +45,10 @@ export function tacticalReducer(state: TacticalState, action: TacticalAction): T
       return action.requestId === state.loadRequestId ? { ...state, unitStatus: 'ready' } : state;
     case 'unit-error':
       return action.requestId === state.loadRequestId ? { ...state, unitStatus: 'error' } : state;
+    case 'retry-unit':
+      return state.selectedUnitId === null
+        ? state
+        : { ...state, unitStatus: 'loading', loadRequestId: state.loadRequestId + 1 };
     case 'capture-start':
       return { ...state, captureStatus: 'capturing' };
     case 'capture-error':

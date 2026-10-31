@@ -63,19 +63,12 @@ describe('command UI', () => {
     render(<App />);
 
     expect(await screen.findByRole('button', { name: /Light Guncannon/i })).toBeInTheDocument();
-    expect(screen.getByText('Hero display')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Select unit' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
     expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
-    expect(screen.getByText('Select a unit from the roster to view it.')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Light Guncannon/i }));
-    expect(screen.getByText('Loading unit…')).toBeInTheDocument();
+    expect(screen.queryByText('Select a unit from the roster to view it.')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Light Guncannon');
-    expect(screen.queryByText('Hero display')).not.toBeInTheDocument();
-
-    expect(screen.queryByRole('button', { name: /Deployment slot/i })).not.toBeInTheDocument();
-    expect(screen.queryByText('DEPLOYMENT')).not.toBeInTheDocument();
+    expect(screen.getByText('Loading unit…')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
     expect(screen.getByRole('button', { name: 'Space stage' })).toHaveAttribute('aria-pressed', 'true');
@@ -85,13 +78,24 @@ describe('command UI', () => {
     mockFetch([...collection, { ...collection[0], id: 'sample-two', title: 'Sample Two', model: '/models/sample-two.glb' }]);
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Light Guncannon/i }));
+    await screen.findByRole('button', { name: /Light Guncannon/i });
+    expect(screen.getByRole('region', { name: 'Hero display' })).toHaveTextContent('Light Guncannon');
     fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
     fireEvent.click(screen.getByRole('button', { name: /Sample Two/i }));
 
     expect(screen.getByRole('region', { name: 'Hero display' })).toHaveTextContent('Sample Two');
     expect(screen.getByRole('region', { name: 'Hero display' })).not.toHaveTextContent('Light Guncannon');
     expect(screen.getByRole('button', { name: 'Space stage' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('keeps a user selection instead of re-selecting the first unit', async () => {
+    mockFetch([...collection, { ...collection[0], id: 'sample-two', title: 'Sample Two', model: '/models/sample-two.glb' }]);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Sample Two/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Space stage' }));
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Sample Two');
   });
 
   it('shows partial, empty, and collection error states', async () => {

@@ -97,4 +97,27 @@ describe('tactical state reducer', () => {
       initialTacticalState,
     );
   });
+
+  it('re-requests the selected unit on retry', () => {
+    const selected = tacticalReducer(initialTacticalState, { type: 'select-unit', unitId: 'a' });
+    const failed = tacticalReducer(selected, { type: 'unit-error', requestId: selected.loadRequestId });
+    const retried = tacticalReducer(failed, { type: 'retry-unit' });
+
+    expect(failed.unitStatus).toBe('error');
+    expect(retried).toMatchObject({
+      selectedUnitId: 'a',
+      unitStatus: 'loading',
+      loadRequestId: failed.loadRequestId + 1,
+    });
+  });
+
+  it('ignores retry with no selected unit and stale errors from before a retry', () => {
+    expect(tacticalReducer(initialTacticalState, { type: 'retry-unit' })).toBe(initialTacticalState);
+
+    const selected = tacticalReducer(initialTacticalState, { type: 'select-unit', unitId: 'a' });
+    const retried = tacticalReducer(selected, { type: 'retry-unit' });
+    expect(
+      tacticalReducer(retried, { type: 'unit-error', requestId: selected.loadRequestId }),
+    ).toBe(retried);
+  });
 });

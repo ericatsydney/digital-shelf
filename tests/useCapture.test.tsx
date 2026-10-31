@@ -1,7 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CaptureButton } from '../src/components/CaptureButton';
-import { captureCanvas } from '../src/scene/useCapture';
+import { captureCanvas, composeCaptureCanvas, defaultCaptureFilename } from '../src/scene/useCapture';
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
 function createCanvas() {
   return document.createElement('canvas');
@@ -89,5 +94,78 @@ describe('captureCanvas', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Capture PNG' }));
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(toDataURL).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('composeCaptureCanvas', () => {
+  function fakeDocument(context: unknown) {
+    const target = { width: 0, height: 0, getContext: vi.fn(() => context) };
+    return { target, documentRef: { createElement: vi.fn(() => target) } as unknown as Document };
+  }
+
+  it('adds a caption strip with the model title and branding under the scene', () => {
+    const context = { drawImage: vi.fn(), fillRect: vi.fn(), fillText: vi.fn(), measureText: vi.fn(() => ({ width: 10 })) };
+    const { target, documentRef } = fakeDocument(context);
+    const source = Object.assign(createCanvas(), { width: 1200, height: 800 });
+
+    const result = composeCaptureCanvas(source, 'Light Guncannon', documentRef);
+
+    expect(result).toBe(target);
+    expect(target.width).toBe(1200);
+    expect(target.height).toBeGreaterThan(800);
+    expect(context.drawImage).toHaveBeenCalledWith(source, 0, 0);
+    const texts = context.fillText.mock.calls.map((call) => call[0]);
+    expect(texts).toEqual(['Light Guncannon', 'Digital Shelf']);
+  });
+
+  it('returns null when a 2D context is unavailable so the raw canvas is saved', () => {
+    const { documentRef } = fakeDocument(null);
+    expect(composeCaptureCanvas(createCanvas(), 'Unit', documentRef)).toBeNull();
+  });
+
+  it('saves the composed canvas when a title is given and falls back to the raw canvas otherwise', () => {
+    const source = createCanvas();
+    const composed = createCanvas();
+    vi.spyOn(source, 'toDataURL').mockReturnValue('data:raw');
+    vi.spyOn(composed, 'toDataURL').mockReturnValue('data:composed');
+    const link = { href: '', download: '', click: vi.fn() } as unknown as HTMLAnchorElement;
+    const documentRef = {
+      createElement: vi.fn((tag: string) => (tag === 'canvas' ? composed : link)),
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    } as unknown as Document;
+    vi.spyOn(composed, 'getContext').mockReturnValue({
+      drawImage: vi.fn(), fillRect: vi.fn(), fillText: vi.fn(), measureText: vi.fn(() => ({ width: 1 })),
+    } as unknown as CanvasRenderingContext2D);
+
+    captureCanvas(source, 'a.png', documentRef, 'Unit A');
+    expect(link.href).toBe('data:composed');
+
+    captureCanvas(source, 'a.png', documentRef);
+    expect(link.href).toBe('data:raw');
+  });
+});
+
+describe('defaultCaptureFilename', () => {
+  it('includes the unit id and a filesystem-safe timestamp', () => {
+    expect(defaultCaptureFilename('light-guncannon')).toMatch(/^digital-shelf-light-guncannon-[0-9T-]+Z\.png$/);
+    expect(defaultCaptureFilename()).toMatch(/^digital-shelf-[0-9T-]+Z\.png$/);
+  });
+});
+
+describe('CaptureButton save confirmation', () => {
+  it('shows Saved <filename> after a successful capture and clears it after 3 seconds', () => {
+    vi.useFakeTimers();
+    const canvas = createCanvas();
+    vi.spyOn(canvas, 'toDataURL').mockReturnValue('data:image/png;base64,scene');
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    render(<CaptureButton canvas={canvas} filename="scene.png" />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Capture PNG' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Saved scene.png');
+
+    act(() => { vi.advanceTimersByTime(3000); });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });
