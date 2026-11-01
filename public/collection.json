@@ -27,5 +27,22 @@
       "scale": 20.6,
       "groundOffset": 0.5
     }
+  },
+  {
+    "id": "nu-gundam",
+    "title": "Nu Gundam",
+    "category": "Figure",
+    "model": "/models/nu-gundam.glb",
+    "description": "RX-93 Nu Gundam display model.",
+    "tags": [
+      "gunpla",
+      "mobile-suit"
+    ],
+    "heightMeters": 22,
+    "display": {
+      "rotationYDegrees": 90,
+      "scale": 22,
+      "groundOffset": 0.5
+    }
   }
 ]

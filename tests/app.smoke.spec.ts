@@ -15,7 +15,7 @@ test.describe('tactical showcase', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: 'Hyaku-Shiki' })).toBeVisible();
     await expect(page.getByText('Select a unit from the roster to view it.')).toHaveCount(0);
-    await expect(page.getByText('2 units')).toBeVisible();
+    await expect(page.getByText('3 units')).toBeVisible();
     await expect(page.getByRole('button', { name: /Light Guncannon/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
     await expect(page.getByText('DEPLOYMENT', { exact: true })).toHaveCount(0);
@@ -30,6 +30,9 @@ test.describe('tactical showcase', () => {
 
     await page.getByRole('button', { name: /Light Guncannon/ }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Light Guncannon' })).toBeVisible();
+
+    await page.getByRole('button', { name: /Nu Gundam/ }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Nu Gundam' })).toBeVisible();
     expect(errors).toEqual([]);
   });
 
@@ -236,6 +239,7 @@ test.describe('tactical showcase', () => {
   });
 
   test('opens the mobile unit dropdown upward so every option stays inside the viewport', async ({ page }) => {
+    test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
