@@ -3,12 +3,12 @@ import type { Texture, WebGLProgramParametersWithUniforms } from 'three';
 import { loadForestGroundTexture } from './forestGroundTexture';
 import { getForestLayout, type ForestTree } from './environmentLayout';
 import { buildTreeGeometry } from './treeGeometry';
-import { applyWind, tickWind } from './windMaterial';
+import { applyWind, getTreeWindStrength, tickWind } from './windMaterial';
 
 function Tree({ tree }: { tree: ForestTree }) {
   const geometry = useMemo(() => buildTreeGeometry(tree), [tree]);
   useEffect(() => () => geometry.dispose(), [geometry]);
-  const strength = tree.layer === 3 ? 0.3 : 0.5;
+  const strength = getTreeWindStrength(tree.layer);
   const sway = (shader: WebGLProgramParametersWithUniforms) => applyWind(shader, { treeHeight: tree.height, strength });
   return (
     <mesh geometry={geometry} position={tree.position} rotation={[0, tree.position[2] * 0.13, 0]} onBeforeRender={tickWind}>

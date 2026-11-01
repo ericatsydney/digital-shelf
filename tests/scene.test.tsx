@@ -190,6 +190,17 @@ describe('hero scene', () => {
     expect(container.querySelector('gridHelper')).not.toBeNull();
   });
 
+  it('fills the Forest with soft sky light so shaded trees and ground stay bright, and only the Forest', () => {
+    const { container, rerender } = render(<StageScene stage={forestStage} />);
+    const fill = container.querySelector('hemisphereLight');
+    expect(fill).not.toBeNull();
+    expect(Number(fill?.getAttribute('intensity'))).toBeGreaterThan(0.5);
+    for (const other of [ruinedCityStage, stage, spaceStage]) {
+      rerender(<StageScene stage={other} />);
+      expect(container.querySelector('hemisphereLight')).toBeNull();
+    }
+  });
+
   it('lights the Hangar from the front without a floor grid, and only the Hangar', () => {
     const { container, rerender } = render(<StageScene stage={stage} />);
     expect(container.querySelector('gridHelper')).toBeNull();

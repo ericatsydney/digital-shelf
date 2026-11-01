@@ -19,6 +19,12 @@ describe('cinematic grade settings', () => {
     expect(getCinematicSettings(backdrop('forest')).vignette).toBeLessThan(hangar);
     expect(getCinematicSettings(backdrop('ruined-city')).vignette).toBeLessThan(hangar);
   });
+
+  it('opens up the Forest into bright daylight', () => {
+    const forest = getCinematicSettings(backdrop('forest'));
+    expect(forest.exposure).toBeGreaterThan(1);
+    expect(forest.vignette).toBeLessThan(getCinematicSettings(backdrop('ruined-city')).vignette);
+  });
 });
 
 describe('software renderer detection', () => {

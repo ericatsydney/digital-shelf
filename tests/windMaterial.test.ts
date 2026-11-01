@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyWind, swayWeight } from '../src/scene/windMaterial';
+import { applyWind, getTreeWindStrength, swayWeight, WIND_TUNING } from '../src/scene/windMaterial';
 
 const shaderSource = () => ({
   uniforms: {} as Record<string, { value: unknown }>,
@@ -13,6 +13,20 @@ describe('swayWeight', () => {
     expect(swayWeight(1)).toBe(1);
     expect(swayWeight(2)).toBe(1);
     expect(swayWeight(0.75)).toBeGreaterThan(swayWeight(0.5));
+  });
+});
+
+describe('gentle wind tuning', () => {
+  it('sways trees softly, with the far layer calmer than the near ones', () => {
+    expect(getTreeWindStrength(1)).toBeLessThanOrEqual(0.3);
+    expect(getTreeWindStrength(3)).toBeLessThan(getTreeWindStrength(1));
+  });
+
+  it('moves slowly: gusts, swing and leaf flutter all well under their old speeds', () => {
+    expect(WIND_TUNING.gustSpeed).toBeLessThan(0.9 * 0.6);
+    expect(WIND_TUNING.swingSpeed).toBeLessThan(1.6 * 0.6);
+    expect(WIND_TUNING.flutterSpeed).toBeLessThan(0.6);
+    expect(WIND_TUNING.flutterAmount).toBeLessThan(0.16);
   });
 });
 

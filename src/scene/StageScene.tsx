@@ -24,7 +24,9 @@ export function StageScene({ stage }: StageSceneProps) {
       <color attach="background" args={[stage.background]} />
       {hasDaylight && <SkyDome fallbackColor={stage.background} variant={isCity ? 'ruined-city' : 'forest'} />}
       <ambientLight intensity={stage.ambientIntensity} color={isHangar ? '#ffe8d0' : undefined} />
-      <directionalLight position={[4, 8, 5]} intensity={stage.directionalIntensity} />
+      <directionalLight position={[4, 8, 5]} intensity={stage.directionalIntensity} color={isForest ? '#fff3dc' : undefined} />
+      {/* Open-air skylight: blue from above, grass-green bounce from below, so shaded leaves and trunks never go black. */}
+      {isForest && <hemisphereLight args={['#cfe6ff', '#6f8f4a']} intensity={1.1} />}
       {isHangar && (
         <>
           <directionalLight position={[-10, 16, 40]} intensity={1.7} color="#ffd9b3" />

@@ -9,7 +9,7 @@ export type CinematicSettings = {
 /** The single place to tune the colour grade per stage; daylight stages get a lighter vignette so they stay open. */
 const settingsByStage: Record<StageRecord['backdrop']['variant'], CinematicSettings> = {
   hangar: { vignette: 0.75, exposure: 0.95 },
-  forest: { vignette: 0.55, exposure: 1 },
+  forest: { vignette: 0.4, exposure: 1.12 },
   'ruined-city': { vignette: 0.65, exposure: 1 },
   space: { vignette: 0.75, exposure: 0.95 },
 };

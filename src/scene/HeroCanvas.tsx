@@ -11,6 +11,8 @@ import { Turntable } from './Turntable';
 import { resetModelProgress, useModelProgress } from './modelProgress';
 import { getCameraLimits } from './cameraLimits';
 import { CinematicLook } from './CinematicLook';
+import { RuinedCityAtmosphere } from './RuinedCityAtmosphere';
+import { shouldShowAshMist } from './ashMist';
 import { getCinematicSettings, getRendererName, isSoftwareRenderer } from './cinematicSettings';
 import { CaptureButton } from '../components/CaptureButton';
 import { ControlsHint } from '../components/ControlsHint';
@@ -223,6 +225,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       >
         <StageBackdrop stage={stage} config={stage.backdrop} />
         <StageScene stage={stage} />
+        {shouldShowAshMist(stage, softwareRendering) && <RuinedCityAtmosphere />}
         {cinematic && <CinematicLook settings={cinematic} />}
         {turntable ? (
           <PresentationControls global polar={[0, 0]} azimuth={[-Infinity, Infinity]} speed={1.6} damping={0.2}>
