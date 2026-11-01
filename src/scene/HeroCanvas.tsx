@@ -10,6 +10,8 @@ import { StageBackdrop } from './StageBackdrop';
 import { Turntable } from './Turntable';
 import { resetModelProgress, useModelProgress } from './modelProgress';
 import { getCameraLimits } from './cameraLimits';
+import { CinematicLook } from './CinematicLook';
+import { getCinematicSettings, getRendererName, isSoftwareRenderer } from './cinematicSettings';
 import { CaptureButton } from '../components/CaptureButton';
 import { ControlsHint } from '../components/ControlsHint';
 
@@ -154,6 +156,8 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  // Unknown until the renderer exists; the cinematic look waits so a software renderer never builds it.
+  const [softwareRendering, setSoftwareRendering] = useState<boolean | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false); // per visit only; a new visit shows it again
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const currentRequestId = useRef(requestId);
@@ -182,12 +186,15 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
     [stage.backdrop.variant, unit?.camera],
   );
   const camera = useMemo(() => ({ position: cameraPosition, fov: 42 }), [cameraPosition]);
-  const handleCanvasCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {
+  const handleCanvasCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement; getContext?: () => WebGLRenderingContext | WebGL2RenderingContext } }) => {
     setCanvas(gl.domElement);
+    // CPU-only WebGL can't afford a full-screen grade every frame, so it keeps the plain image.
+    setSoftwareRendering(gl.getContext ? isSoftwareRenderer(getRendererName(gl.getContext())) : false);
   }, []);
 
   const turntable = getHeroControlsMode(stage) === 'turntable';
   const limits = getCameraLimits(stage);
+  const cinematic = softwareRendering !== false ? null : getCinematicSettings(stage);
   if (!unit) {
     return <div className="hero-canvas hero-canvas--empty" role="status">Select a unit from the roster</div>;
   }
@@ -216,6 +223,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       >
         <StageBackdrop stage={stage} config={stage.backdrop} />
         <StageScene stage={stage} />
+        {cinematic && <CinematicLook settings={cinematic} />}
         {turntable ? (
           <PresentationControls global polar={[0, 0]} azimuth={[-Infinity, Infinity]} speed={1.6} damping={0.2}>
             <Turntable accentColor={stage.accentColor} />

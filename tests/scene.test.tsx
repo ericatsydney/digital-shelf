@@ -30,6 +30,10 @@ vi.mock('@react-three/drei', () => ({
   useGLTF: () => ({ scene: {} }),
 }));
 
+vi.mock('../src/scene/CinematicLook', () => ({
+  CinematicLook: () => <div data-testid="cinematic-look" />,
+}));
+
 const unit: CollectionRecord = {
   id: 'light-guncannon',
   title: 'Light Guncannon',

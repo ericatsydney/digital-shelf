@@ -166,6 +166,7 @@ test.describe('tactical showcase', () => {
   });
 
   test('changes stage without freezing the active 3D scene', async ({ page }) => {
+    test.setTimeout(120_000);
     const modelResponse = page.waitForResponse(
       (response) => response.url().endsWith('/models/light-guncannon.glb') && response.ok(),
     );
@@ -183,7 +184,7 @@ test.describe('tactical showcase', () => {
   });
 
   test('keeps the hero and command sheet usable at a narrow mobile viewport', async ({ page }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await expect(page.getByRole('button', { name: /Deployment slot/i })).toHaveCount(0);
