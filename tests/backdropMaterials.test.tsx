@@ -1,6 +1,8 @@
 import { Children, isValidElement, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { HangarBackdrop } from '../src/scene/HangarBackdrop';
+import { HANGAR_GREYS } from '../src/scene/hangarPalette';
+import { getHangarFence, getHangarSkeleton } from '../src/scene/environmentLayout';
 import { getRuinedCityBuildings, StageBackdrop } from '../src/scene/StageBackdrop';
 import { Turntable } from '../src/scene/Turntable';
 
@@ -11,7 +13,10 @@ vi.mock('react', async (importOriginal) => ({
   useMemo: (factory: () => unknown) => factory(),
   useState: (initial: unknown) => [typeof initial === 'function' ? initial() : initial, vi.fn()],
   useEffect: () => {},
+  useRef: (initial: unknown) => ({ current: initial }),
 }));
+
+vi.mock('@react-three/fiber', () => ({ useFrame: vi.fn() }));
 
 type SceneElement = React.ReactElement<{
   children?: ReactNode;
@@ -61,7 +66,7 @@ const city = <StageBackdrop stage={{ accentColor }} config={{ variant: 'ruined-c
 describe('shaded stage surfaces', () => {
   it('has a light, rough Hangar floor and no yellow floor markings', () => {
     const hangar = <HangarBackdrop color={accentColor} />;
-    expectRoughSurface(materials(hangar, 'boxGeometry', [58, 0.24, 90], '#968f85'), 1);
+    expectRoughSurface(materials(hangar, 'boxGeometry', [58, 0.24, 90], HANGAR_GREYS.floorSlab), 1);
     expect(materials(hangar, 'boxGeometry', [0.18, 0.025, 55], '#d1ae45')).toHaveLength(0);
     expect(materials(hangar, 'boxGeometry', [2.2, 0.03, 0.32], '#d1ae45')).toHaveLength(0);
   });
@@ -87,13 +92,10 @@ describe('shaded stage surfaces', () => {
     expect(all.filter((element) => element.type === 'meshStandardMaterial' && element.props.color === '#2f3438')).toHaveLength(0);
   });
 
-  it('lays thick, slack floor cables with connectors at both ends', () => {
-    const hangar = <HangarBackdrop color={accentColor} />;
-    const all = elements(hangar);
-    const tubes = all.filter((element) => element.type === 'tubeGeometry');
-    expect(tubes.length).toBeGreaterThanOrEqual(2);
-    for (const tube of tubes) expect((tube.props.args as number[])[2]).toBeGreaterThanOrEqual(0.22);
-    expect(all.filter((element) => (element.props as { 'data-testid'?: string })['data-testid'] === 'cable-connector').length).toBeGreaterThanOrEqual(4);
+  it('leaves the Hangar floor clear of cables', () => {
+    const all = elements(<HangarBackdrop color={accentColor} />);
+    expect(all.filter((element) => element.type === 'tubeGeometry')).toHaveLength(0);
+    expect(all.filter((element) => (element.props as { 'data-testid'?: string })['data-testid'] === 'cable-connector')).toHaveLength(0);
   });
 
   it('lifts the Forest and Ruined City scenery so the ground meets the robot feet at y = 0', () => {
@@ -114,10 +116,28 @@ describe('shaded stage surfaces', () => {
     for (const material of fillers) expect(material.type).toBe('meshStandardMaterial');
   });
 
-  it('keeps Hangar light strips luminous', () => {
-    const hangarLights = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', [0.14, 12, 0.4], accentColor);
-    expect(hangarLights.length).toBeGreaterThan(0);
-    for (const material of hangarLights) expect(material.type).toBe('meshBasicMaterial');
+  it('builds the skeleton and the corridor fence from rough grey 3D boxes', () => {
+    const girders = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', undefined, HANGAR_GREYS.girder);
+    expectRoughSurface(girders, getHangarSkeleton().length + getHangarFence().length);
+  });
+
+  it('hangs a green log screen on the left wall facing the right wall, with no computer', () => {
+    const all = elements(<HangarBackdrop color={accentColor} />);
+    const consoleGroup = all.find((element) => (element.props as { 'data-testid'?: string })['data-testid'] === 'hangar-console');
+    expect(consoleGroup).toBeDefined();
+    const screen = all.find((element) => (element.props as { 'data-testid'?: string })['data-testid'] === 'console-screen');
+    expect(screen).toBeDefined();
+    expect((screen!.props.position as number[])[0]).toBeLessThan(-27);
+    // Just the frame and the screen: no desk, keyboard or monitor body.
+    expect(elements(consoleGroup!.props.children).filter((element) => element.type === 'mesh')).toHaveLength(2);
+    expect((screen!.props as { rotation?: number[] }).rotation?.[1]).toBeCloseTo(Math.PI / 2, 5);
+  });
+
+  it('has no coloured light strips on the Hangar walls, and neutral white ceiling lights', () => {
+    expect(materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', [0.14, 12, 0.4], accentColor)).toHaveLength(0);
+    const ceilingLights = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', [35, 0.16, 0.6], HANGAR_GREYS.ceilingLight);
+    expect(ceilingLights.length).toBeGreaterThan(0);
+    for (const material of ceilingLights) expect(material.type).toBe('meshBasicMaterial');
   });
 
   it('builds a daylight street with only rough, non-metal solid surfaces', () => {

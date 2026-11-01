@@ -4,14 +4,16 @@ export type CinematicSettings = {
   /** 0 = no vignette, 1 = black corners. */
   vignette: number;
   exposure: number;
+  /** 0 = neutral colours, 1 = full cool-shadow / warm-highlight split. */
+  tint: number;
 };
 
 /** The single place to tune the colour grade per stage; daylight stages get a lighter vignette so they stay open. */
 const settingsByStage: Record<StageRecord['backdrop']['variant'], CinematicSettings> = {
-  hangar: { vignette: 0.75, exposure: 0.95 },
-  forest: { vignette: 0.4, exposure: 1.12 },
-  'ruined-city': { vignette: 0.65, exposure: 1 },
-  space: { vignette: 0.75, exposure: 0.95 },
+  hangar: { vignette: 0.7, exposure: 1.05, tint: 0.2 },
+  forest: { vignette: 0.4, exposure: 1.12, tint: 1 },
+  'ruined-city': { vignette: 0.65, exposure: 1, tint: 1 },
+  space: { vignette: 0.75, exposure: 0.95, tint: 1 },
 };
 
 export function getCinematicSettings(stage: Pick<StageRecord, 'backdrop'>): CinematicSettings {

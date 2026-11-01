@@ -20,6 +20,15 @@ describe('cinematic grade settings', () => {
     expect(getCinematicSettings(backdrop('ruined-city')).vignette).toBeLessThan(hangar);
   });
 
+  it('keeps the grey Hangar nearly neutral while the other stages keep the full warm/cool split', () => {
+    const hangar = getCinematicSettings(backdrop('hangar')).tint;
+    expect(hangar).toBeGreaterThan(0);
+    expect(hangar).toBeLessThanOrEqual(0.3);
+    for (const variant of ['forest', 'ruined-city', 'space'] as const) {
+      expect(getCinematicSettings(backdrop(variant)).tint).toBe(1);
+    }
+  });
+
   it('opens up the Forest into bright daylight', () => {
     const forest = getCinematicSettings(backdrop('forest'));
     expect(forest.exposure).toBeGreaterThan(1);
