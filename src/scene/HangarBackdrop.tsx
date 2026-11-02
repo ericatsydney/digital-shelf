@@ -4,7 +4,7 @@ import { getHangarFence, getHangarLayout, getHangarSkeleton, type Position } fro
 import { getHangarWallTexture } from './hangarWallTexture';
 import { getHangarFloorTexture } from './hangarFloorTexture';
 import { getCrateTexture } from './crateTexture';
-import { HANGAR_GREYS } from './hangarPalette';
+import { HANGAR_GREYS, steelFaceColors } from './hangarPalette';
 import { HangarConsole } from './HangarConsole';
 
 function SteelBox({ position, size, color = '#263746' }: { position: Position; size: Position; color?: string }) {
@@ -58,6 +58,7 @@ export function HangarBackdrop({ color }: { color: string }) {
   const sideDepth = 48;
   const backTexture = useMemo(() => getHangarWallTexture(1, bay.width / bay.height), [bay.width, bay.height]);
   const floorTexture = useMemo(() => getHangarFloorTexture(), []);
+  const steelColors = useMemo(() => steelFaceColors(), []);
   const sideTexture = useMemo(() => getHangarWallTexture(2, sideDepth / bay.height), [bay.height]);
   return (
     <group>
@@ -80,8 +81,11 @@ export function HangarBackdrop({ color }: { color: string }) {
       <HangarConsole />
       {[...getHangarSkeleton(), ...getHangarFence()].map((box, index) => (
         <mesh key={`girder-${index}`} position={box.position}>
-          <boxGeometry args={box.size} />
-          <meshStandardMaterial color={HANGAR_GREYS.girder} emissive={HANGAR_GREYS.coolFill} roughness={0.95} />
+          <boxGeometry args={box.size}>
+            <bufferAttribute attach="attributes-color" args={[steelColors, 3]} />
+          </boxGeometry>
+          {/* Unlit like the walls: the face shading is baked in, so both side walls match. */}
+          <meshBasicMaterial color={HANGAR_GREYS.girder} vertexColors />
         </mesh>
       ))}
       {bay.beamZs.map(z => (

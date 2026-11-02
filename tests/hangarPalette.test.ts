@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HANGAR_GREYS, greyRgb } from '../src/scene/hangarPalette';
+import { HANGAR_GREYS, STEEL_FACE_SHADE, greyRgb, steelFaceColors } from '../src/scene/hangarPalette';
 
 const channels = (rgb: string) => rgb.match(/\d+/g)!.map(Number);
 const spread = (rgb: string) => Math.max(...channels(rgb)) - Math.min(...channels(rgb));
@@ -27,6 +27,22 @@ describe('hangar grey palette', () => {
       expect(b).toBeGreaterThanOrEqual(r);
       expect(Math.max(r, g, b) - Math.min(r, g, b)).toBeLessThanOrEqual(24);
     }
+  });
+
+  it('shades steel faces the same on the left and right walls: top brightest, underside darkest', () => {
+    const { top, side, front, back, bottom } = STEEL_FACE_SHADE;
+    expect(top).toBeGreaterThan(front);
+    expect(front).toBeGreaterThan(side);
+    expect(side).toBeGreaterThan(back);
+    expect(back).toBeGreaterThan(bottom);
+    const colors = steelFaceColors();
+    expect(colors).toHaveLength(24 * 3); // BoxGeometry: +x, -x, +y, -y, +z, -z, four vertices each
+    const faceShade = (face: number) => colors[face * 12];
+    expect(faceShade(0)).toBe(faceShade(1)); // the two x faces match, so mirrored bars look identical
+    expect(faceShade(2)).toBeCloseTo(top);
+    expect(faceShade(3)).toBeCloseTo(bottom);
+    expect(faceShade(4)).toBeCloseTo(front);
+    expect(faceShade(5)).toBeCloseTo(back);
   });
 
   it('uses only neutral flat colours for the fallback wall, floor slab and ceiling lights', () => {

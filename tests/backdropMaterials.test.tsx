@@ -116,9 +116,13 @@ describe('shaded stage surfaces', () => {
     for (const material of fillers) expect(material.type).toBe('meshStandardMaterial');
   });
 
-  it('builds the skeleton and the corridor fence from rough grey 3D boxes', () => {
+  it('builds the skeleton and the corridor fence from matte grey boxes with baked, symmetric face shading', () => {
     const girders = materials(<HangarBackdrop color={accentColor} />, 'boxGeometry', undefined, HANGAR_GREYS.girder);
-    expectRoughSurface(girders, getHangarSkeleton().length + getHangarFence().length);
+    expect(girders).toHaveLength(getHangarSkeleton().length + getHangarFence().length);
+    for (const material of girders) {
+      expect(material.type).toBe('meshBasicMaterial');
+      expect((material.props as { vertexColors?: boolean }).vertexColors).toBe(true);
+    }
   });
 
   it('hangs a green log screen on the left wall facing the right wall, with no computer', () => {

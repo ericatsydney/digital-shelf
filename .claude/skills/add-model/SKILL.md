@@ -15,7 +15,7 @@ Follow AGENTS.md as well (clean git gate, spec/plan left uncommitted, full verif
 ## 2. Convert HEIC to JPG
 `sharp` cannot decode HEVC HEIC here. Use a throwaway venv in the scratchpad:
 - `python -m venv venv`, `venv/Scripts/pip install pillow pillow-heif`
-- `pillow_heif.register_heif_opener()`, open with PIL, `ImageOps.exif_transpose`, `thumbnail((1600,1600))`, save JPEG quality 90.
+- `pillow_heif.register_heif_opener()`, open with PIL, `ImageOps.exif_transpose`, `convert("RGB")`, then save JPEG at full resolution with `quality=95, subsampling=0` (do not downscale: Tripo takes up to 20 MB per image and detail is lost when shrunk). Use `os.path.join` for paths, not `\n`-prone Windows string literals.
 - Look at every JPG to decide the view order. Tripo wants front, left, back, right (left = the figure's left side).
 - Copy to `assets/source-images/<id>-front|left|back|right.jpg` (git-ignored).
 

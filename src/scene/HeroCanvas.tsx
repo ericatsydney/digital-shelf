@@ -16,6 +16,7 @@ import { shouldShowAshMist } from './ashMist';
 import { getCinematicSettings, getRendererName, isSoftwareRenderer } from './cinematicSettings';
 import { CaptureButton } from '../components/CaptureButton';
 import { ControlsHint } from '../components/ControlsHint';
+import { isHintDismissed, rememberHintDismissed } from '../components/hintPreference';
 
 // The hero fills the screen, so phones render far more pixels; cap their density.
 const isNarrowScreen = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 700px)').matches;
@@ -160,7 +161,8 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   // Unknown until the renderer exists; the cinematic look waits so a software renderer never builds it.
   const [softwareRendering, setSoftwareRendering] = useState<boolean | null>(null);
-  const [hintDismissed, setHintDismissed] = useState(false); // per visit only; a new visit shows it again
+  // Dragging the canvas hides the hint for this visit; closing it with the button is remembered for good.
+  const [hintDismissed, setHintDismissed] = useState(isHintDismissed);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const currentRequestId = useRef(requestId);
   currentRequestId.current = requestId;
@@ -240,7 +242,7 @@ export function HeroCanvas({ unit, stage, requestId, cameraResetId, onReady, onE
       {!loaded && !loadError && <LoadingFallback />}
       {loadError && <div className="hero-canvas__status" role="alert">Model unavailable</div>}
       {loaded && !loadError && !hintDismissed && (
-        <ControlsHint mode={turntable ? 'turntable' : 'orbit'} onDismiss={() => setHintDismissed(true)} />
+        <ControlsHint mode={turntable ? 'turntable' : 'orbit'} onDismiss={() => { rememberHintDismissed(); setHintDismissed(true); }} />
       )}
       <CaptureButton canvas={canvas} unitId={unit.id} title={unit.title} />
     </div>
