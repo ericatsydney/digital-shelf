@@ -11,6 +11,19 @@ export const emptyRubble = (): RubbleChunks => ({ cores: [], concrete: [], grey:
 export const rubbleChunkCount = (rubble: RubbleChunks) =>
   rubble.cores.length + rubble.concrete.length + rubble.grey.length + rubble.plaster.length + rubble.slabs.length;
 
+/** The faceted core under each heap: a squashed dodecahedron (unit diameter) scaled by these factors. */
+const CORE_RADIUS_SCALE = 1.45;
+const CORE_HEIGHT_SCALE = 1.7;
+/** A dodecahedron's flat faces sit inside its bounding sphere, so only this fraction of the ellipsoid is solid. */
+const CORE_SOLID = 0.9;
+
+/** Height above the heap's ground that the core reliably reaches at (x, z); 0 outside its footprint. */
+export function heapSupportHeight(heap: Heap, x: number, z: number) {
+  const stretch = heap.stretch ?? 1;
+  const edge = Math.hypot(x - heap.center[0], (z - heap.center[1]) / stretch) / (heap.radius * CORE_RADIUS_SCALE * 0.5 * CORE_SOLID);
+  return edge >= 1 ? 0 : heap.height * CORE_HEIGHT_SCALE * 0.5 * CORE_SOLID * Math.sqrt(1 - edge * edge);
+}
+
 const seeded = (seed: number) => {
   const value = Math.sin(seed * 12.9898) * 43758.5453;
   return value - Math.floor(value);
@@ -25,7 +38,7 @@ export function addRubbleHeap(target: RubbleChunks, heap: Heap, groundY: number)
   target.cores.push({
     position: [cx, groundY, cz],
     // Kept just under the chunk surface so it fills gaps without showing as one smooth face.
-    scale: [radius * 1.45, height * 1.5, radius * stretch * 1.45],
+    scale: [radius * CORE_RADIUS_SCALE, height * CORE_HEIGHT_SCALE, radius * stretch * CORE_RADIUS_SCALE],
     rotation: [0, random(1) * Math.PI, 0],
   });
 
@@ -36,11 +49,11 @@ export function addRubbleHeap(target: RubbleChunks, heap: Heap, groundY: number)
     const edge = r / radius;
     const surface = height * (1 - edge ** 1.4);
     const size = (0.1 + random(chunk * 7 + 4) ** 2 * 0.5) * (1 - 0.35 * edge);
-    const position: Part['position'] = [
-      cx + Math.cos(angle) * r,
-      groundY + Math.max(0, surface - size * 0.3 * random(chunk * 7 + 5)),
-      cz + Math.sin(angle) * r * stretch,
-    ];
+    const x = cx + Math.cos(angle) * r;
+    const z = cz + Math.sin(angle) * r * stretch;
+    // A chunk only climbs as high as the core beneath it, so nothing hovers where the core thins out.
+    const supported = Math.min(surface, heapSupportHeight(heap, x, z) + size * 0.25);
+    const position: Part['position'] = [x, groundY + Math.max(0, supported - size * 0.3 * random(chunk * 7 + 5)), z];
     const kind = random(chunk * 7 + 6);
     const turn = random(chunk * 7 + 8);
     if (kind > 0.88) {

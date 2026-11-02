@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ASH_VOLUME, getAshMistSettings, getHazeLayers, seedParticles, shouldShowAshMist, stepParticles } from '../src/scene/ashMist';
+import { ASH_LIFT, ASH_VOLUME, EMBER_LIFT, getAshMistSettings, getHazeLayers, seedParticles, shouldShowAshMist, stepParticles } from '../src/scene/ashMist';
 
 const city = { backdrop: { variant: 'ruined-city' as const } };
 
@@ -26,18 +26,18 @@ describe('ruined city ash mist', () => {
     expect(getAshMistSettings({ narrow: false }).hazeOpacity).toBeCloseTo(0.14 / 3);
   });
 
-  it('falls slowly and swirls in depth as well as sideways', () => {
+  it('floats upward on hot air and swirls in depth as well as sideways', () => {
     const positions = new Float32Array([0, 20, 10]);
-    stepParticles(positions, new Float32Array([1.7]), { delta: 1, time: 0.5, rise: false, motion: 1 });
-    expect(20 - positions[1]).toBeGreaterThan(0);
-    expect(20 - positions[1]).toBeLessThan(0.8);
+    stepParticles(positions, new Float32Array([1.7]), { delta: 1, time: 0.5, lift: ASH_LIFT, motion: 1 });
+    expect(positions[1] - 20).toBeGreaterThan(0.3);
+    expect(positions[1] - 20).toBeLessThan(2);
     expect(positions[2]).not.toBe(10);
   });
 
   it('varies the drift over time so the ash does not move in lockstep', () => {
     const drift = (time: number) => {
       const positions = new Float32Array([0, 20, 10]);
-      stepParticles(positions, new Float32Array([1]), { delta: 0.1, time, rise: false, motion: 1 });
+      stepParticles(positions, new Float32Array([1]), { delta: 0.1, time, lift: ASH_LIFT, motion: 1 });
       return positions[0];
     };
     expect(drift(0)).not.toBeCloseTo(drift(10), 3);
@@ -64,18 +64,20 @@ describe('ruined city ash mist', () => {
     }
   });
 
-  it('drops ash, lifts embers, and wraps both inside the volume', () => {
+  it('lifts both ash and embers, embers faster, and wraps them inside the volume', () => {
+    expect(EMBER_LIFT).toBeGreaterThan(ASH_LIFT);
     const ash = new Float32Array([0, 10, 0]);
-    stepParticles(ash, new Float32Array([1]), { delta: 1, time: 0, rise: false, motion: 1 });
-    expect(ash[1]).toBeLessThan(10);
+    stepParticles(ash, new Float32Array([1]), { delta: 1, time: 0, lift: ASH_LIFT, motion: 1 });
+    expect(ash[1]).toBeGreaterThan(10);
 
     const ember = new Float32Array([0, 10, 0]);
-    stepParticles(ember, new Float32Array([1]), { delta: 1, time: 0, rise: true, motion: 1 });
+    stepParticles(ember, new Float32Array([1]), { delta: 1, time: 0, lift: EMBER_LIFT, motion: 1 });
     expect(ember[1]).toBeGreaterThan(10);
 
-    const low = new Float32Array([ASH_VOLUME.halfWidth - 0.01, 0.1, ASH_VOLUME.zMax - 0.01]);
-    stepParticles(low, new Float32Array([1]), { delta: 1, time: 0, rise: false, motion: 1 });
-    expect(low[1]).toBeGreaterThan(0);
+    const top = new Float32Array([ASH_VOLUME.halfWidth - 0.01, ASH_VOLUME.height - 0.01, ASH_VOLUME.zMax - 0.01]);
+    stepParticles(top, new Float32Array([1]), { delta: 1, time: 0, lift: EMBER_LIFT, motion: 1 });
+    expect(top[1]).toBeLessThan(ASH_VOLUME.height / 2);
+    const low = top;
     expect(low[0]).toBeLessThan(ASH_VOLUME.halfWidth);
     expect(low[2]).toBeGreaterThanOrEqual(ASH_VOLUME.zMin);
     expect(low[2]).toBeLessThanOrEqual(ASH_VOLUME.zMax);
@@ -83,7 +85,7 @@ describe('ruined city ash mist', () => {
 
   it('keeps particles still with reduced motion', () => {
     const positions = new Float32Array([1, 5, 2]);
-    stepParticles(positions, new Float32Array([1]), { delta: 1, time: 3, rise: false, motion: 0 });
+    stepParticles(positions, new Float32Array([1]), { delta: 1, time: 3, lift: ASH_LIFT, motion: 0 });
     expect(Array.from(positions)).toEqual([1, 5, 2]);
   });
 

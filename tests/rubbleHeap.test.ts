@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addRubbleHeap, emptyRubble, rubbleChunkCount } from '../src/scene/rubbleHeap';
+import { addRubbleHeap, emptyRubble, heapSupportHeight, rubbleChunkCount, type Heap } from '../src/scene/rubbleHeap';
 import { getCityRubble } from '../src/scene/RuinedCityBackdrop';
 
 const groundY = -1.2;
@@ -34,6 +34,13 @@ describe('rubble heap', () => {
     expect(mean(inner)).toBeGreaterThan(mean(outer) + 0.4);
   });
 
+  it('rests every chunk on the core or the ground, so nothing hovers at the heap edge', () => {
+    for (const chunk of chunks) {
+      const reach = Math.max(...chunk.scale) * 0.35;
+      expect(chunk.position[1] - groundY).toBeLessThanOrEqual(heapSupportHeight(heap, chunk.position[0], chunk.position[2]) + reach + 0.01);
+    }
+  });
+
   it('is deterministic', () => {
     const again = emptyRubble();
     addRubbleHeap(again, heap, groundY);
@@ -59,5 +66,26 @@ describe('city rubble', () => {
 
   it('stays within a mobile-friendly instance budget', () => {
     expect(rubbleChunkCount(rubble)).toBeLessThan(7000);
+  });
+});
+
+describe('heap support height', () => {
+  const heap: Heap = { center: [0, 0], radius: 2, height: 1, stretch: 2, seed: 1 };
+
+  it('peaks at the centre and is zero outside the heap', () => {
+    expect(heapSupportHeight(heap, 0, 0)).toBeGreaterThan(0.5);
+    expect(heapSupportHeight(heap, 0.9, 0)).toBeLessThan(heapSupportHeight(heap, 0, 0));
+    expect(heapSupportHeight(heap, 5, 0)).toBe(0);
+    expect(heapSupportHeight(heap, 0, 5)).toBe(0);
+  });
+});
+
+describe('city rubble support', () => {
+  it('never lifts a chunk above what lies beneath it in any city heap', () => {
+    const rubble = getCityRubble();
+    // Chunk height above its own heap's ground is bounded by the heap's tallest point (2.2 facade, 1.1 street).
+    for (const chunk of [...rubble.concrete, ...rubble.grey, ...rubble.plaster, ...rubble.slabs]) {
+      expect(chunk.position[1]).toBeLessThan(-1.15 + 2.3);
+    }
   });
 });

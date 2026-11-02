@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getStreetDebris, wreckSpots } from '../src/scene/CityStreetProps';
+import { getStreetDebris, streetRubbleGroundY, wreckSpots } from '../src/scene/CityStreetProps';
+import { heapSupportHeight } from '../src/scene/rubbleHeap';
 
 describe('city street props', () => {
   const debris = getStreetDebris(19.8, 60);
@@ -25,6 +26,15 @@ describe('city street props', () => {
       expect(Math.abs(heap.center[0]) + heap.radius).toBeLessThan(19.8 / 2 + 2.5);
       const stretch = heap.stretch ?? 1;
       expect(Math.abs(heap.center[0]) - heap.radius < 3.5 && Math.abs(heap.center[1]) - heap.radius * stretch < 3.5).toBe(false);
+    }
+  });
+
+  it('rests bricks and charred timber on the heap or road instead of hovering', () => {
+    for (const part of [...debris.bricks, ...debris.charred]) {
+      const support = Math.max(0, ...debris.heaps.map((heap) => heapSupportHeight(heap, part.position[0], part.position[2])));
+      const halfHeight = Math.max(...part.scale) * 0.5;
+      const bottom = part.position[1] - halfHeight * 0.5;
+      expect(bottom - streetRubbleGroundY).toBeLessThanOrEqual(support + 0.05);
     }
   });
 

@@ -2,7 +2,11 @@ import type { StageRecord } from '../app/types';
 
 export type AshMistSettings = { ashCount: number; emberCount: number; hazeOpacity: number; ashSize: number; emberSize: number };
 export type HazeLayer = { z: number; x: number; width: number; speed: number };
-export type StepOptions = { delta: number; time: number; rise: boolean; motion: number };
+export type StepOptions = { delta: number; time: number; lift: number; motion: number };
+
+/** Upward drift as a share of each particle's speed: hot air from the fires carries embers fast and light ash more slowly. */
+export const ASH_LIFT = 0.55;
+export const EMBER_LIFT = 1.1;
 
 /** The street volume the ash fills, from just behind the hero to past the camera. */
 export const ASH_VOLUME = { halfWidth: 20, height: 40, zMin: -10, zMax: 42 };
@@ -49,8 +53,8 @@ export function windGust(time: number) {
   return 1 + 0.6 * Math.sin(time * 0.23) + 0.3 * Math.sin(time * 0.61 + 1.3);
 }
 
-/** Ash falls slowly and embers rise, both swirling sideways and in depth on gusting wind; anything leaving the volume wraps to the other side. */
-export function stepParticles(positions: Float32Array, speeds: Float32Array, { delta, time, rise, motion }: StepOptions) {
+/** Hot air lifts ash and embers (embers faster), both swirling sideways and in depth on gusting wind; anything leaving the volume wraps to the other side. */
+export function stepParticles(positions: Float32Array, speeds: Float32Array, { delta, time, lift, motion }: StepOptions) {
   if (motion <= 0) return;
   const step = delta * motion;
   const gust = windGust(time);
@@ -58,7 +62,7 @@ export function stepParticles(positions: Float32Array, speeds: Float32Array, { d
   for (let i = 0; i < speeds.length; i += 1) {
     // Each particle has its own phase, so neighbours eddy differently instead of moving in lockstep.
     const swirl = Math.sin(time * 0.45 + i * 1.7) * 0.5 + Math.sin(time * 1.1 + i * 0.6) * 0.2;
-    positions[i * 3 + 1] += speeds[i] * step * (rise ? 0.35 : -0.4) + Math.sin(time * 0.8 + i * 2.9) * 0.08 * step;
+    positions[i * 3 + 1] += speeds[i] * step * lift + Math.sin(time * 0.8 + i * 2.9) * 0.08 * step;
     positions[i * 3] += (0.25 * gust + swirl) * step;
     positions[i * 3 + 2] += Math.sin(time * 0.37 + i * 2.3) * 0.35 * step;
     if (positions[i * 3 + 1] < 0) positions[i * 3 + 1] += height;

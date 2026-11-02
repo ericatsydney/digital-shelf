@@ -1,5 +1,5 @@
 import { Instanced, type Part, type Vec3 } from './Instanced';
-import type { Heap } from './rubbleHeap';
+import { heapSupportHeight, type Heap } from './rubbleHeap';
 
 const roadTopY = -1.25;
 
@@ -33,21 +33,28 @@ export function getStreetDebris(roadwayWidth: number, streetLength: number): Str
     if (Math.abs(x) < modelClearance + radius && Math.abs(z) < modelClearance + radius * stretch) {
       x = (x === 0 ? side : Math.sign(x)) * (modelClearance + radius + 0.2);
     }
-    debris.heaps.push({ center: [x, z], radius, height: 0.5 + seeded(pile + 31) * 0.6, stretch, seed: 500 + pile });
+    const heap: Heap = { center: [x, z], radius, height: 0.5 + seeded(pile + 31) * 0.6, stretch, seed: 500 + pile };
+    debris.heaps.push(heap);
+    // Loose pieces rest on the heap's core, or on the road where it has thinned out.
+    const restY = (px: number, pz: number) => roadTopY + heapSupportHeight(heap, px, pz);
 
     const brickCount = 1 + Math.floor(seeded(pile + 31) * 3);
     for (let brick = 0; brick < brickCount; brick += 1) {
       const size = 0.1 + seeded(pile * 19 + brick) * 0.16;
+      const bx = x + (seeded(pile * 23 + brick) - 0.5) * 1.4;
+      const bz = z + (seeded(pile * 29 + brick) - 0.5) * 1.4;
       debris.bricks.push({
-        position: [x + (seeded(pile * 23 + brick) - 0.5) * 1.4, roadTopY + 0.22 + size * 0.3, z + (seeded(pile * 29 + brick) - 0.5) * 1.4],
+        position: [bx, restY(bx, bz) + size * 0.3, bz],
         scale: [size * 1.6, size * 0.7, size],
         rotation: [seeded(brick + pile) * 0.5, seeded(brick * 3 + pile) * 6, seeded(brick * 5 + pile) * 0.5],
       });
     }
 
     if (seeded(pile + 37) > 0.55) {
+      const rx = x + (seeded(pile + 41) - 0.5) * 0.8;
+      const rz = z + (seeded(pile + 43) - 0.5) * 0.8;
       debris.rebar.push({
-        position: [x + (seeded(pile + 41) - 0.5) * 0.8, roadTopY + 0.4, z + (seeded(pile + 43) - 0.5) * 0.8],
+        position: [rx, restY(rx, rz) + 0.4, rz],
         scale: [0.04, 0.9 + seeded(pile + 47) * 0.9, 0.04],
         rotation: [(seeded(pile + 53) - 0.5) * 1.4, 0, (seeded(pile + 59) - 0.5) * 1.4],
       });
@@ -60,8 +67,10 @@ export function getStreetDebris(roadwayWidth: number, streetLength: number): Str
       });
     }
     if (seeded(pile + 61) > 0.6) {
+      const cx = x + (seeded(pile + 67) - 0.5) * 1.4;
+      const cz = z + (seeded(pile + 71) - 0.5) * 1.4;
       debris.charred.push({
-        position: [x + (seeded(pile + 67) - 0.5) * 1.4, roadTopY + 0.12, z + (seeded(pile + 71) - 0.5) * 1.4],
+        position: [cx, restY(cx, cz) + 0.05, cz],
         scale: [0.12, 0.12, 0.7 + seeded(pile + 73) * 0.8],
         rotation: [0, seeded(pile + 79) * 3, 0.08],
       });

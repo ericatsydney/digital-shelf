@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, DoubleSide, RepeatWrapping, type Texture } from 'three';
-import { getAshMistSettings, getHazeLayers, seedParticles, stepParticles, windGust } from './ashMist';
+import { ASH_LIFT, EMBER_LIFT, getAshMistSettings, getHazeLayers, seedParticles, stepParticles, windGust } from './ashMist';
 
 const isNarrowScreen = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 700px)').matches;
 const motionAmount = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : 1;
@@ -78,8 +78,8 @@ function GroundHaze({ opacity }: { opacity: number }) {
   );
 }
 
-function AshParticles({ count, color, size, additive, rise, seed, sprite }: {
-  count: number; color: string; size: number; additive: boolean; rise: boolean; seed: number; sprite: Texture;
+function AshParticles({ count, color, size, additive, lift, seed, sprite }: {
+  count: number; color: string; size: number; additive: boolean; lift: number; seed: number; sprite: Texture;
 }) {
   const { geometry, speeds } = useMemo(() => {
     const { positions, speeds } = seedParticles(count, seed);
@@ -91,7 +91,7 @@ function AshParticles({ count, color, size, additive, rise, seed, sprite }: {
   useFrame(({ clock }, delta) => {
     if (motionAmount <= 0) return;
     const attribute = geometry.getAttribute('position') as BufferAttribute;
-    stepParticles(attribute.array as Float32Array, speeds, { delta, time: clock.elapsedTime, rise, motion: motionAmount });
+    stepParticles(attribute.array as Float32Array, speeds, { delta, time: clock.elapsedTime, lift, motion: motionAmount });
     attribute.needsUpdate = true;
   });
   return (
@@ -102,7 +102,7 @@ function AshParticles({ count, color, size, additive, rise, seed, sprite }: {
   );
 }
 
-/** The Ruined City still smoulders: warm dust haze along the street, sparse falling ash and a few rising embers. */
+/** The Ruined City still smoulders: warm dust haze along the street, sparse ash and a few embers, both lifted by the hot air. */
 export function RuinedCityAtmosphere() {
   const { ashCount, emberCount, hazeOpacity, ashSize, emberSize } = getAshMistSettings({ narrow: Boolean(isNarrowScreen) });
   const sprite = useMemo(softDotTexture, []);
@@ -110,8 +110,8 @@ export function RuinedCityAtmosphere() {
   return (
     <>
       <GroundHaze opacity={hazeOpacity} />
-      <AshParticles count={ashCount} color="#d8d2cc" size={ashSize} additive={false} rise={false} seed={1} sprite={sprite} />
-      <AshParticles count={emberCount} color="#ff8a3d" size={emberSize} additive rise seed={2} sprite={sprite} />
+      <AshParticles count={ashCount} color="#d8d2cc" size={ashSize} additive={false} lift={ASH_LIFT} seed={1} sprite={sprite} />
+      <AshParticles count={emberCount} color="#ff8a3d" size={emberSize} additive lift={EMBER_LIFT} seed={2} sprite={sprite} />
     </>
   );
 }
