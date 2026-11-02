@@ -5,7 +5,8 @@ const port = 4173;
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.smoke.spec.ts',
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
