@@ -41,8 +41,8 @@
     "heightMeters": 22,
     "display": {
       "rotationYDegrees": 90,
-      "scale": 22,
-      "groundOffset": 0.5
+      "scale": 22.45928287407261,
+      "groundOffset": 0.4896065592765808
     }
   }
 ]
