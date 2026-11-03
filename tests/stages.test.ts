@@ -18,10 +18,10 @@ describe('stage backdrop validation', () => {
     })).toBeNull();
   });
 
-  it('ships Hangar, Forest, and Ruined City as valid selectable stages', () => {
+  it('ships Hangar, Forest, Ruined City, and Orbital Poster as valid selectable stages', () => {
     const records = shippedStages.map(validateStageRecord);
     expect(records.every((record) => record !== null)).toBe(true);
-    expect(records.map((record) => record?.id)).toEqual(['hangar', 'forest', 'ruined-city']);
+    expect(records.map((record) => record?.id)).toEqual(['hangar', 'forest', 'ruined-city', 'orbital-poster']);
     expect(records[2]).toMatchObject({
       name: 'Ruined City', background: '#8d9ca6', ambientIntensity: 0.7, directionalIntensity: 1.2,
     });
@@ -30,6 +30,7 @@ describe('stage backdrop validation', () => {
       accentColor: '#a5c880', ambientIntensity: 1, directionalIntensity: 1.7,
       backdrop: { variant: 'forest', particleCount: 0, motion: 0 },
     });
+    expect(records[3]).toMatchObject({ name: 'Orbital Poster', posterBackground: '/stages/earth-orbital.jpg' });
   });
 
   it('accepts a configured hologram backdrop', () => {

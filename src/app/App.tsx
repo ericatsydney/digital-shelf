@@ -7,6 +7,7 @@ import { CommandSheet } from '../components/CommandSheet';
 import { StageSwitcher } from '../components/StageSwitcher';
 import { initialTacticalState, tacticalReducer } from '../state/tacticalState';
 import { HeroCanvas } from '../scene/HeroCanvas';
+import { PosterStage } from '../components/PosterStage';
 
 const fallbackStage: StageRecord = {
   id: 'hangar',
@@ -90,14 +91,18 @@ export function App() {
   return (
     <main className="app-shell" style={{ '--stage-background': selectedStage.background } as React.CSSProperties}>
       <section className="hero-display" aria-label="Hero display">
-        <HeroCanvas
-          unit={selectedUnit}
-          stage={selectedStage}
-          requestId={state.loadRequestId}
-          cameraResetId={state.cameraResetId}
-          onReady={handleUnitReady}
-          onError={handleUnitError}
-        />
+        {selectedStage.posterBackground ? (
+          <PosterStage background={selectedStage.posterBackground} poster={selectedUnit?.poster} title={selectedUnit?.title} />
+        ) : (
+          <HeroCanvas
+            unit={selectedUnit}
+            stage={selectedStage}
+            requestId={state.loadRequestId}
+            cameraResetId={state.cameraResetId}
+            onReady={handleUnitReady}
+            onError={handleUnitError}
+          />
+        )}
         <StageSwitcher
           stages={stages}
           selectedStageId={state.stageId}

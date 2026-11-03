@@ -7,6 +7,8 @@ export type CollectionRecord = {
   model: string;
   heightMeters?: number;
   thumbnail?: string;
+  /** Transparent 2D render layered over a poster stage background. */
+  poster?: string;
   camera?: {
     position: [number, number, number];
     target: [number, number, number];
@@ -37,4 +39,6 @@ export type StageRecord = {
   ambientIntensity: number;
   directionalIntensity: number;
   backdrop: StageBackdropConfig;
+  /** When set, the stage is a 2D poster: this image fills the hero area and the unit's poster is layered on top. */
+  posterBackground?: string;
 };

@@ -40,5 +40,20 @@
       "particleCount": 12,
       "motion": 0.12
     }
+  },
+  {
+    "id": "orbital-poster",
+    "name": "Orbital Poster",
+    "background": "#050a14",
+    "gridColor": "#284c6e",
+    "accentColor": "#7fb8ff",
+    "ambientIntensity": 1,
+    "directionalIntensity": 1,
+    "backdrop": {
+      "variant": "space",
+      "particleCount": 0,
+      "motion": 0
+    },
+    "posterBackground": "/stages/earth-orbital.jpg"
   }
 ]

@@ -9,7 +9,8 @@
       "rotationYDegrees": 90,
       "scale": 19.7,
       "groundOffset": 0.5
-    }
+    },
+    "poster": "/posters/hyaku-shiki.png"
   },
   {
     "id": "light-guncannon",
@@ -26,7 +27,8 @@
       "rotationYDegrees": 90,
       "scale": 20.6,
       "groundOffset": 0.5
-    }
+    },
+    "poster": "/posters/light-guncannon.png"
   },
   {
     "id": "nu-gundam",
@@ -43,6 +45,7 @@
       "rotationYDegrees": 90,
       "scale": 22.45928287407261,
       "groundOffset": 0.4896065592765808
-    }
+    },
+    "poster": "/posters/nu-gundam.png"
   }
 ]
